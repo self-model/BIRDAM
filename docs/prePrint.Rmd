@@ -1,6 +1,6 @@
 ---
-title             : "Biased and Inattentive Responding Drive Apparent Metacognitive Biases in Mental Health "
-shorttitle        : "Biased and Inattentive Responding Drive Apparent Metacognitive Biases in Mental Health"
+title             : "Biased and Inattentive Responding Contribute to Apparent Metacognitive Biases in Mental Health "
+shorttitle        : "Biased and Inattentive Responding Contribute to Apparent Metacognitive Biases in Mental Health"
 
 author: 
   - name: "Noam Sarna"
@@ -320,175 +320,7 @@ hoven_mean_diff_confidence_cor <-
     method = "pearson"
   )
 
-#--------------------------------------------------
-# Create r / p labels in italic(r) == ... format
-#--------------------------------------------------
 
-rouault_mean_rating_label <- ifelse(
-  rouault_mean_diff_confidence_cor$p.value < 0.001,
-  paste0(
-    "italic(r) == ",
-    signif(rouault_mean_diff_confidence_cor$estimate, 2),
-    "*','~italic(p) < 0.001"
-  ),
-  paste0(
-    "italic(r) == ",
-    signif(rouault_mean_diff_confidence_cor$estimate, 2),
-    "*','~italic(p) == ",
-    signif(rouault_mean_diff_confidence_cor$p.value, 3)
-  )
-)
-
-seowGillan_mean_rating_label <- ifelse(
-  seowgillan_mean_diff_confidence_cor$p.value < 0.001,
-  paste0(
-    "italic(r) == ",
-    signif(seowgillan_mean_diff_confidence_cor$estimate, 2),
-    "*','~italic(p) < 0.001"
-  ),
-  paste0(
-    "italic(r) == ",
-    signif(seowgillan_mean_diff_confidence_cor$estimate, 2),
-    "*','~italic(p) == ",
-    signif(seowgillan_mean_diff_confidence_cor$p.value, 3)
-  )
-)
-
-hoven_mean_rating_label <- ifelse(
-  hoven_mean_diff_confidence_cor$p.value < 0.001,
-  paste0(
-    "italic(r) == ",
-    signif(hoven_mean_diff_confidence_cor$estimate, 2),
-    "*','~italic(p) < 0.001"
-  ),
-  paste0(
-    "italic(r) == ",
-    signif(hoven_mean_diff_confidence_cor$estimate, 2),
-    "*','~italic(p) == ",
-    signif(hoven_mean_diff_confidence_cor$p.value, 3)
-  )
-)
-
-#--------------------------------------------------
-# Rouault et al. 2018
-#--------------------------------------------------
-rouault_mean_rating_fig <-
-  ggplot(Rouault2018_df, aes(x = mean_diff, y = mean_confidence)) +
-  geom_point(alpha = 0.6, size = 2, color = "gray30")+
-  geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 0.8, alpha = 0.15)+
-  annotate(
-    "text",
-    x = -Inf, y = -Inf,
-    hjust = -0.1, vjust = -0.8,
-    label = rouault_mean_rating_label,
-    parse = TRUE,
-    size = 6
-  )+
-  labs(
-    title = "Rouault et al., 2018",
-    x = "Rating delta",
-    y = "Mean confidence rating (1–6 scale)"
-  ) +
-  coord_cartesian(xlim = c(-2.8, 1.5), ylim = c(1, 6)) +
-  theme_minimal(base_size = 16) +
-  theme(
-    aspect.ratio = 1,
-    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
-    panel.grid.major = element_line(color = "gray90", linewidth = 0.3),
-    panel.grid.minor = element_blank(),
-    plot.margin = margin(t = 10, r = 20, b = 10, l = 20)   # symmetric left/right
-  )
-#--------------------------------------------------
-# Seow & Gillan 2020
-#--------------------------------------------------
-seowGillan_mean_rating_fig <-
-  ggplot(SeowGillan2020_df, aes(x = mean_diff, y = mean_confidence)) +
-  geom_point(alpha = 0.6, size = 2, color = "gray30")+
-  geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 0.8, alpha = 0.15)+
-  annotate(
-    "text",
-    x = -Inf, y = -Inf,
-    hjust = -0.1, vjust = -0.8,
-    label = seowGillan_mean_rating_label,
-    parse = TRUE,
-    size = 6
-  )+
-  labs(
-    title = "Seow & Gillan, 2020",
-    x = "Rating delta",
-    y = "Mean confidence rating (1–100 scale)"
-  ) +
-  coord_cartesian(xlim = c(-2.8, 1.5), ylim = c(1, 100)) +
-  theme_minimal(base_size = 16) +
-  theme(
-    aspect.ratio = 1,
-    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
-    panel.grid.major = element_line(color = "gray90", linewidth = 0.3),
-    panel.grid.minor = element_blank(),
-    plot.margin = margin(t = 10, r = 20, b = 10, l = 20)   # symmetric left/right
-  )
-
-#--------------------------------------------------
-# Hoven, Luigjes et al. 2023
-#--------------------------------------------------
-hoven_mean_rating_fig <-
-  ggplot(hoven_semantic_space, aes(x = mean_diff, y = mean_confidence)) +
-  geom_point(alpha = 0.6, size = 2, color = "gray30")+
-  geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 0.8, alpha = 0.15)+
-  annotate(
-    "text",
-    x = -Inf, y = -Inf,
-    hjust = -0.1, vjust = -0.8,
-    label = hoven_mean_rating_label,
-    parse = TRUE,
-    size = 6
-  )+
-  labs(
-    title = "Hoven, Luigjes et al., 2023",
-    x = "Rating delta",
-    y = "Mean confidence rating (50–100 scale)"
-  ) +
-  coord_cartesian(xlim = c(-2.8, 1.5), ylim = c(50, 100)) +
-  theme_minimal(base_size = 16) +
-  theme(
-    aspect.ratio = 1,
-    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
-    panel.grid.major = element_line(color = "gray90", linewidth = 0.3),
-    panel.grid.minor = element_blank(),
-    plot.margin = margin(t = 10, r = 20, b = 10, l = 20)   # symmetric left/right
-  )
-#--------------------------------------------------
-# Combine the three plots into one figure
-#-------------------------------------------------
-response_bias_confidence_fig <- ggarrange(
-  rouault_mean_rating_fig,
-  seowGillan_mean_rating_fig,
-  hoven_mean_rating_fig,
-  ncol = 3,
-  nrow = 1,
-  common.legend = FALSE,
-  widths = c(1, 1, 1),     # equal widths
-  align = "h"
-)
-#--------------------------------------------------
-ggsave(
-  filename = "../figures/response_bias_confidence.png",
-  plot = response_bias_confidence_fig,
-  width = 16,
-  height = 6,
-  bg = "white",
-  dpi = 300
-)
-```
-
-### Analysis 1.1: Testing the effect of acquiescence on confidence rating
-
-Confidence ratings are similar to psychiatric questionnaire items in that they require participants to translate an internal representation to a number, or a point on a scale. As such, they may be subject to similar biases. For example, participants showing positive acquiescence in their rating of psychiatric items (a tendency to produce high ratings) would also tend to show positive acquiescence in their confidence rating (a tendency to report high confidence). This will affect both their apparent mental health profile and, crucially, their mean self-reported confidence level, producing a spurious correlation between the two (Figure \@ref(fig:model)B, leftmost panel). To test whether acquiescence plays a role in the association between confidence and psychiatric dimensions, we calculated for each participant their mean confidence rating over all trials in the perceptual decision-making task, and an acquiescence proxy based on the average rating across all questionnaire items. As some of the self-report items are reversed-phrased, i.e. phrased such that agreement indicates lower endorsement of the construct, they must be reverse-scored to align with the scale's direction (we elaborate on this in the next section). To account for this, we calculated this proxy as the rating delta between standard and reversed items across all psychiatric inventories (for more details see Methods).
-
-In Seow and Gillan (2020), there was a positive correlation between mean item rating and mean confidence rating `r apa_print(seowgillan_mean_diff_confidence_cor)$full_result`; Figure \@ref(fig:mean-rating), middle panel), such that higher mean ratings across items were associated with higher mean confidence ratings. A positive correlation was also found in Rouault et al., 2018 (`r apa_print(rouault_mean_diff_confidence_cor)$full_result`) and in @hoven2023a (`r apa_print(hoven_mean_diff_confidence_cor)$full_result`). These results can mean at least one of two things: either that psychiatric symptoms, as measured with these questionnaires, are truly associated with higher levels of decision confidence, or that acquiescence in self-report rating scales affects both responses to questionnaire items and confidence ratings, producing a spurious correlation between the two. Our next analysis provides direct support for the second alternative.
-
-```{r mean-rating, echo=FALSE, fig.cap="Correlation Between Mean Item Rating and Mean Confidence Rating in Rouault et al., 2018 (left panel), Seow & Gillan, 2020 (middle panel) and Hoven, Luigjes, et al., 2023 (right panel). Each point represents a single participant's mean item rating across all inventories and mean confidence rating across all trials. Item-ratings for reversed items were recoded to a left-to-right space (as they were shown to the participant). Item ratings were scaled to a 0-1 range to maintain consistency across inventories with different scales. The red line represents a linear regression fit, and the shaded gray area represents the standard error of the fit. Density plots shown on the y- and x-axis with red dashed lines present the mean and blue dashed lines present the median."}
-knitr::include_graphics("../figures/response_bias_confidence.png")
 ```
 
 ```{r item-level-skewness-wrangling, include=FALSE}
@@ -599,10 +431,142 @@ hoven_items_table <- hoven_items_table %>%
 
 ```
 
-```{r analysis 1.2, include=FALSE}
+```{r plot-acquiescence-proxies, include=FALSE}
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-# plot reversed items and confidence correlation###########
+# plot acquiescence proxies and confidence correlation#####
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+#--------------------------------------------------
+# Mean rating diff confidence correlation
+#--------------------------------------------------
+# Create r / p labels in italic(r) == ... format
+rouault_mean_rating_label <- ifelse(
+  rouault_mean_diff_confidence_cor$p.value < 0.001,
+  paste0(
+    "italic(r) == ",
+    signif(rouault_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) < 0.001"
+  ),
+  paste0(
+    "italic(r) == ",
+    signif(rouault_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) == ",
+    signif(rouault_mean_diff_confidence_cor$p.value, 3)
+  )
+)
+
+seowGillan_mean_rating_label <- ifelse(
+  seowgillan_mean_diff_confidence_cor$p.value < 0.001,
+  paste0(
+    "italic(r) == ",
+    signif(seowgillan_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) < 0.001"
+  ),
+  paste0(
+    "italic(r) == ",
+    signif(seowgillan_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) == ",
+    signif(seowgillan_mean_diff_confidence_cor$p.value, 3)
+  )
+)
+
+hoven_mean_rating_label <- ifelse(
+  hoven_mean_diff_confidence_cor$p.value < 0.001,
+  paste0(
+    "italic(r) == ",
+    signif(hoven_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) < 0.001"
+  ),
+  paste0(
+    "italic(r) == ",
+    signif(hoven_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) == ",
+    signif(hoven_mean_diff_confidence_cor$p.value, 3)
+  )
+)
+
+base_upper_theme <- theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 12),
+    axis.text  = element_text(size = 12),
+    aspect.ratio = 1,
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.3),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(t = 10, r = 20, b = 0, l = 20)
+  )
+
+#--------------------------------------------------
+# Rouault et al. 2018
+#--------------------------------------------------
+rouault_mean_rating_fig <-
+  ggplot(Rouault2018_df, aes(x = mean_diff, y = mean_confidence)) +
+  geom_point(alpha = 0.5, size = 1.3, color = "gray30")+
+  geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 0.8, alpha = 0.15)+
+  annotate(
+    "text",
+    x = -Inf, y = -Inf,
+    hjust = -0.1, vjust = 0.1,
+    label = rouault_mean_rating_label,
+    parse = TRUE,
+    size = 4
+  )+
+  labs(
+    title = "Rouault et al., 2018",
+    x = "Rating delta",
+    y = "Mean confidence\n(1\u002D6 scale)"
+  ) +
+  coord_cartesian(xlim = c(-2.8, 1.5), ylim = c(1, 6)) +
+  base_upper_theme
+#--------------------------------------------------
+# Seow & Gillan 2020
+#--------------------------------------------------
+seowGillan_mean_rating_fig <-
+  ggplot(SeowGillan2020_df, aes(x = mean_diff, y = mean_confidence)) +
+  geom_point(alpha = 0.5, size = 1.3, color = "gray30")+
+  geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 0.8, alpha = 0.15)+
+  annotate(
+    "text",
+    x = -Inf, y = -Inf,
+    hjust = -0.1, vjust = 0.1,
+    label = seowGillan_mean_rating_label,
+    parse = TRUE,
+    size = 4
+  )+
+  labs(
+    title = "Seow & Gillan, 2020",
+    x = "Rating delta",
+    y = "Mean confidence\n(1\u002D100 scale)"
+  ) +
+  coord_cartesian(xlim = c(-2.8, 1.5), ylim = c(1, 100)) +
+  base_upper_theme
+
+#--------------------------------------------------
+# Hoven, Luigjes et al. 2023
+#--------------------------------------------------
+hoven_mean_rating_fig <-
+  ggplot(hoven_semantic_space, aes(x = mean_diff, y = mean_confidence)) +
+  geom_point(alpha = 0.5, size = 1.3, color = "gray30")+
+  geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 0.8, alpha = 0.15)+
+  annotate(
+    "text",
+    x = -Inf, y = -Inf,
+    hjust = -0.1, vjust = 0.1,
+    label = hoven_mean_rating_label,
+    parse = TRUE,
+    size = 4
+  )+
+  labs(
+    title = "Hoven, Luigjes et al., 2023",
+    x = "Rating delta",
+    y = "Mean confidence\n(50\u002D100 scale)"
+  ) +
+  coord_cartesian(xlim = c(-2.8, 1.5), ylim = c(50, 100)) +
+  base_upper_theme
+
+#--------------------------------------------------
+# plot reversed items confidence correlation figures
+#--------------------------------------------------
 
 # Define consistent shape mapping for questionnaires
 questionnaire_shape_map <- c(
@@ -617,22 +581,24 @@ questionnaire_shape_map <- c(
   "gad_anxiety" = 2
 )
 
+base_lower_theme <- theme_minimal(base_size = 14) +
+  theme(
+    axis.title = element_text(size = 12),
+    axis.text  = element_text(size = 12),
+    aspect.ratio = 1,
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
 # Rouault et al., 2018 plot
 R2018_reversed_fig <-
   R2018_items_table %>%
-  mutate(item = case_when(
-    item == "anxiety.2" ~ "STAI.2",
-    item == "anxiety.1" ~ "STAI.1",
-    TRUE ~ item
-  )) %>%
   filter(questionnaire == 'anxiety' | questionnaire == 'depression' | questionnaire == 'impulsivity' |
            questionnaire == 'apathy') %>%
   mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
   ggplot(aes(x = is_reversed, y = conf_cor)) +
-  geom_text(data = . %>% filter(item == "STAI.2" | item == "STAI.1"),
-            aes(label = item), hjust = 1.5, color = "black", size = 4.5) +
   geom_abline(intercept=0, slope=0) +
-  geom_jitter(aes(color = is_reversed, shape = questionnaire), width = 0.1, height = 0, size = 3, alpha=0.6) +
+  geom_jitter(aes(color = is_reversed, shape = questionnaire), width = 0.2, height = 0, size = 3, alpha=0.6) +
   stat_summary(fun = mean,
                geom = "point",
                position = position_dodge(0.9),
@@ -651,56 +617,27 @@ R2018_reversed_fig <-
               map_signif_level = TRUE,
                test = "t.test",
               color = "black",
-              size = 1,
-              textsize = 7,
+              size = 0.6,
+              textsize = 6,
               y_position = 0.25) +
-  labs(title = "Rouault et al., 2018", x = "", y = "Item confidence correlation") +
-geom_hline(yintercept = r_crit_R, linetype = "dashed", size = 0.9) +
-geom_hline(yintercept = -r_crit_R, linetype = "dashed", size = 0.9) +
-  scale_x_discrete(labels = c("not_reversed" = "Standard", "reversed" = "Reversed")) +
-  scale_shape_manual(
-    values = questionnaire_shape_map,
-    labels = c(
-      "depression" = "Depression (SDS)",
-      "impulsivity" = "Impulsivity (BIS)",
-      "apathy" = "Apathy",
-      "anxiety" = "STAI-anxiety"
-    ),
-    name = "",
-    guide = "none"
-  ) +
-  scale_color_manual(
-    values = custom_colors,
-    labels = c("Standard", "Reversed"),
-    name = "",
-    guide = "none"
-  ) +
+  labs(title = "", x = "", y = "Item confidence correlation") +
+  geom_hline(yintercept = r_crit_R, linetype = "dashed", size = 0.7) +
+  geom_hline(yintercept = -r_crit_R, linetype = "dashed", size = 0.7) +
+  scale_shape_manual(values = questionnaire_shape_map, guide = "none")+
+  scale_color_manual(values = custom_colors, guide = "none")+
+  scale_x_discrete(labels = c("not_reversed" = "Standard", "reversed" = "Reversed"))+
   coord_cartesian(ylim = c(-0.2, 0.3)) +
-  theme_bw() +
-  theme(
-    plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
-    axis.title = element_text(size = 20),
-    axis.text = element_text(size = 18),
-    legend.text = element_text(size = 20),
-    legend.title = element_text(size = 20)
-  )
+  base_lower_theme
 
 # Seow & Gillan, 2020 plot
 SG2020_reversed_fig <-
   SG2020_items_table %>%
-  mutate(item = case_when(
-    item == "zung.1" ~ "SDS.1",
-    item == "zung.17" ~ "SDS.17",
-    TRUE ~ item
-  )) %>%
   filter(questionnaire == 'anxiety' | questionnaire == 'depression' | questionnaire == 'impulsivity' |
            questionnaire == 'apathy') %>%
   mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
   ggplot(aes(x = is_reversed, y = conf_cor)) +
-  geom_text(data = . %>% filter(item == "SDS.17" | item == "SDS.1"),
-            aes(label = item), hjust = 1.5, color = "black", size = 4.5) +
   geom_abline(intercept=0, slope=0) +
-  geom_jitter(aes(color = is_reversed, shape = questionnaire), width = 0.1, height = 0, size = 3, alpha=0.6) +
+  geom_jitter(aes(color = is_reversed, shape = questionnaire), width = 0.2, height = 0, size = 3, alpha=0.6) +
   stat_summary(fun = mean,
                geom = "point",
                position = position_dodge(0.9),
@@ -719,39 +656,17 @@ SG2020_reversed_fig <-
               map_signif_level = TRUE,
               test = "t.test",
               color = "black",
-              size = 1,
-              textsize = 7,
+              size = 0.6,
+              textsize = 6,
               y_position = 0.25) +
-  labs(title = "Seow & Gillan 2020", x = "", y = "") +
-geom_hline(yintercept = r_crit_SG, linetype = "dashed", size = 0.9) +
-geom_hline(yintercept = -r_crit_SG, linetype = "dashed", size = 0.9) +
-  scale_x_discrete(labels = c("not_reversed" = "Standard", "reversed" = "Reversed")) +
-  scale_shape_manual(
-    values = questionnaire_shape_map,
-    labels = c(
-      "depression" = "Depression (SDS)",
-      "impulsivity" = "Impulsivity (BIS)",
-      "apathy" = "Apathy",
-      "anxiety" = "STAI-anxiety"
-    ),
-    name = "",
-    guide = "none"
-  ) +
-  scale_color_manual(
-    values = custom_colors,
-    labels = c("Standard", "Reversed"),
-    name = "",
-    guide = "none"
-  ) +
+  labs(title = "", x = "", y = "") +
+  geom_hline(yintercept = r_crit_SG, linetype = "dashed", size = 0.7) +
+  geom_hline(yintercept = -r_crit_SG, linetype = "dashed", size = 0.7) +
+  scale_shape_manual(values = questionnaire_shape_map, guide = "none")+
+  scale_color_manual(values = custom_colors, guide = "none")+
+  scale_x_discrete(labels = c("not_reversed" = "Standard", "reversed" = "Reversed"))+
   coord_cartesian(ylim = c(-0.2, 0.3)) +
-  theme_bw() +
-  theme(
-    plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
-    axis.title = element_text(size = 20),
-    axis.text = element_text(size = 18),
-    legend.text = element_text(size = 20),
-    legend.title = element_text(size = 20)
-  )
+  base_lower_theme
 
 # Hoven, Luigjes, et al., 2023 plot
 hoven_reversed_fig <-
@@ -767,7 +682,7 @@ hoven_reversed_fig <-
   mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
   ggplot(aes(x = is_reversed, y = conf_cor)) +
   geom_abline(intercept=0, slope=0) +
-  geom_jitter(aes(color = is_reversed, shape = questionnaire), width = 0.1, height = 0, size = 3, alpha=0.6) +
+  geom_jitter(aes(color = is_reversed, shape = questionnaire), width = 0.2, height = 0, size = 3, alpha=0.6) +
   stat_summary(fun = mean,
                geom = "point",
                position = position_dodge(0.9),
@@ -782,46 +697,21 @@ hoven_reversed_fig <-
                position = position_dodge(0.9),
                color = "black",
                group = 1) +
-  geom_text(data = . %>% filter(item %in% c("bis.4", "bis.8")),
-            aes(label = toupper(item)), color = "black", hjust = 1.5, size = 4.5) +
   geom_signif(comparisons = list(c("not_reversed", "reversed")),
               map_signif_level = TRUE,
               test = "t.test",
               color = "black",
-              size = 1,
-              textsize = 7,
+              size = 0.6,
+              textsize = 6,
               y_position = 0.25) +
-  labs(title = "Hoven, Luigjes, et al., 2023", x = "", y = "") +
-  scale_shape_manual(
-    values = questionnaire_shape_map,
-    labels = c(
-      "depression" = "Depression (SDS)",
-      "impulsivity" = "Impulsivity (BIS)",
-      "apathy" = "Apathy",
-      "anxiety" = "STAI-anxiety"
-    ),
-    breaks = c("depression", "impulsivity", "apathy", "anxiety"),
-    name = "",
-    guide = "none"
-  ) +
-  scale_color_manual(
-    values = custom_colors,
-    labels = c("Standard", "Reversed"),
-    name = "",
-    guide = "none"
-  ) +
-  scale_x_discrete(labels = c("not_reversed" = "Standard", "reversed" = "Reversed")) +
-geom_hline(yintercept = r_crit_H, linetype = "dashed", size = 0.9) +
-geom_hline(yintercept = -r_crit_H, linetype = "dashed", size = 0.9) +
+  labs(title = "", x = "", y = "") +
+   scale_shape_manual(values = questionnaire_shape_map, guide = "none")+
+  scale_color_manual(values = custom_colors, guide = "none")+
+  scale_x_discrete(labels = c("not_reversed" = "Standard", "reversed" = "Reversed"))+
+  geom_hline(yintercept = r_crit_H, linetype = "dashed", size = 0.7) +
+  geom_hline(yintercept = -r_crit_H, linetype = "dashed", size = 0.7) +
   coord_cartesian(ylim = c(-0.2, 0.3)) +
-  theme_bw() +
-  theme(
-    plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
-    axis.title = element_text(size = 20),
-    axis.text = element_text(size = 18),
-    legend.text = element_text(size = 14),
-    legend.title = element_text(size = 18, hjust = 0.5)
-  )
+  base_lower_theme
 
 # Create complete legend with all questionnaire types and color (reversed items)
 reversed_legend_data <- data.frame(
@@ -833,7 +723,7 @@ reversed_legend_data <- data.frame(
 )
 
 reversed_legend_plot <- ggplot(reversed_legend_data, aes(x = x, y = y, shape = questionnaire, color = is_reversed)) +
-  geom_point(size = 3) +
+  geom_point(size = 3, alpha=0.6) +
   scale_shape_manual(
     values = questionnaire_shape_map,
     labels = c(
@@ -852,8 +742,8 @@ reversed_legend_plot <- ggplot(reversed_legend_data, aes(x = x, y = y, shape = q
     name = ""
   ) +
   theme_void() +
-  theme(legend.title = element_text(size = 16),
-        legend.text = element_text(size = 14),
+  theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
         legend.key.size = unit(1.2, "lines"),
         legend.spacing.y = unit(0.3, "cm")) +
   guides(
@@ -873,12 +763,38 @@ reversed_legend_plot <- ggplot(reversed_legend_data, aes(x = x, y = y, shape = q
 complete_legend_reversed <- cowplot::get_legend(reversed_legend_plot)
 legend_grob_reversed <- patchwork::wrap_elements(complete_legend_reversed)
 
-# Combine plots
-reversed_items_fig <- R2018_reversed_fig + SG2020_reversed_fig + hoven_reversed_fig + legend_grob_reversed +
-  plot_layout(ncol = 4, widths = c(1, 1, 1, 0.7))
+# Assemble final figure
+acq_prox_top_row <-
+  ((rouault_mean_rating_fig |
+    seowGillan_mean_rating_fig |
+    hoven_mean_rating_fig |
+    plot_spacer()) &
+     theme(plot.margin = margin(t = 0, r = 20, b = 0, l = 20)))
 
-# save plot 
-ggsave("../figures/reversed_items_three_df.png", reversed_items_fig, width = 14, height = 7, dpi = 300)
+acq_prox_bottom_row <-
+  ((R2018_reversed_fig |
+    SG2020_reversed_fig |
+    hoven_reversed_fig |
+    wrap_elements(complete_legend_reversed)) &
+     theme(plot.margin = margin(t = 0, r = 10, b = 0, l = 20))) 
+
+acq_prox_final_fig <-
+  (acq_prox_top_row / acq_prox_bottom_row) +
+  plot_layout(
+    widths  = c(1.2, 1.2, 1.2, 0.75),
+    heights = c(1, 1)) +
+  plot_annotation(
+    tag_levels = list(c("A", "", "", "B", "", "", "", ""))) &
+  theme(plot.tag = element_text(size = 18, face = "bold"))
+
+ggsave(
+  filename = "../figures/acquiescence_proxies_confidence.png",
+  plot = acq_prox_final_fig,
+  #device = cairo_pdf,
+  width = 12,
+  height = 8,
+  dpi = 300
+)
 
 #--------------------------------------
 # significance testing and effect size 
@@ -962,19 +878,23 @@ conf_cor_reversed_hoven_m <- lmerTest::lmer(
 )
 
 ```
+### Analysis 1.1: Testing the effect of acquiescence on confidence rating
+
+Confidence ratings are similar to psychiatric questionnaire items in that they require participants to translate an internal representation to a number, or a point on a scale. As such, they may be subject to similar biases. For example, participants showing positive acquiescence in their rating of psychiatric items (a tendency to produce high ratings) would also tend to show positive acquiescence in their confidence rating (a tendency to report high confidence). This will affect both their apparent mental health profile and, crucially, their mean self-reported confidence level, producing a spurious correlation between the two (Figure \@ref(fig:model)B, leftmost panel). To test whether acquiescence plays a role in the association between confidence and psychiatric dimensions, we calculated for each participant their mean confidence rating over all trials in the perceptual decision-making task, and an acquiescence proxy based on the average rating across all questionnaire items. As some of the self-report items are reversed-phrased, i.e. phrased such that agreement indicates lower endorsement of the construct, they must be reverse-scored to align with the scale's direction (we elaborate on this in the next section). To account for this, we calculated this proxy as the rating delta between standard and reversed items across all psychiatric inventories (for more details see Methods).
+
+In Seow and Gillan (2020), there was a positive correlation between mean item rating and mean confidence rating `r apa_print(seowgillan_mean_diff_confidence_cor)$full_result`; Figure \@ref(fig:mean-rating)A, middle panel), such that higher mean ratings across items were associated with higher mean confidence ratings. A positive correlation was also found in Rouault et al., 2018 (`r apa_print(rouault_mean_diff_confidence_cor)$full_result`) and in @hoven2023a (`r apa_print(hoven_mean_diff_confidence_cor)$full_result`). These results can mean at least one of two things: either that psychiatric symptoms, as measured with these questionnaires, are truly associated with higher levels of decision confidence, or that acquiescence in self-report rating scales affects both responses to questionnaire items and confidence ratings, producing a spurious correlation between the two. Our next analysis provides direct support for the second alternative.
+
+```{r mean-rating, echo=FALSE, fig.cap="Associations Between Acquiescence-Related Measures and Confidence Across Three Datasets. Left column: Rouault et al. (2018). Middle column: Seow and Gillan (2020). Right column: Hoven, Luigjes, et al. (2023). (A) Correlation between rating delta and mean confidence rating. Each point represents a single participant’s rating delta (mean rating for standard items minus mean rating for reversed items, after reversal) across all inventories and mean confidence rating across all trials. The red line represents a linear regression fit, and the shaded gray area represents the standard error of the fit. (B) Relationship between reversed-coded items and item confidence correlation. Each point represents a questionnaire item with the shapes indicating different questionnaires. Standard and reversed items are color-coded. Black circles denote the mean item–confidence correlation for standard items (left) and reversed items (right), and the vertical bars represent the standard error of the mean. Reference line at y=0 indicates zero item confidence correlation. Black dashed horizontal lines denote the correlation significance thresholds at alpha=0.05, two-sided: for positive correlations, values above the line are significant, and for negative correlations, values below the line are significant. STAI items do not appear in the Hoven, Luigjes, et al. (2023) panel because that study used a different anxiety inventory that did not include reversed items. Asterisks denote significance (p<.001) of a t-test for independent samples."}
+knitr::include_graphics("../figures/Acquiescence_proxies_confidence.png")
+```
 
 ### Analysis 1.2: The effect of acquiescence reflected in reversed coded items
 
 To further assess the magnitude and impact of acquiescence on confidence, we made use of the fact that some questionnaires measuring anxiety [State-Trait Anxiety Inventory, STAI; @spielberger1970], impulsivity [Barratt Impulsivity Scale, BIS-11; @patton1995], depression [Self-Rating Depression Scale, SDS; @zung1965] and apathy [Apathy Evaluation Scale, AES; @marin1991] include reverse-coded items: items that tap into the same cognitive constructs but phrased in opposite ways. For example, items 1 and 2 in the STAI read "I feel pleasant" and "I feel nervous and restless," respectively (possible answers: Almost never, Sometimes, Often, and Almost always). Item 1 is a reversed item. An answer of "Almost always" to this item is coded as 1, and an answer of "Almost never" is coded as 4. The opposite is true for STAI item 2. Crucially, valid responses to these two items should show opposite trends --- low endorsement of pleasantness should be associated with high endorsement of restlessness and vice versa. Conversely, acquiescence is expected to result in an inconsistency between the anxiety scores derived from regular and reversed items, namely high or low endorsement of both pleasantness and restlessness [@weijters2013].
 
-Following this rationale, we tested the effect of coding direction (standard or reversed) on the correlation between questionnaire responses and confidence. For each item in the STAI, BIS, SDS and AES, we assessed the correlation between participants' ratings and their mean confidence level in the decision-making task. In this analysis, items were scored based on their semantic meaning, i.e. reversed items are coded using a reversed scale, as explained above. A true association between the measured construct (in the example above, anxiety) and confidence should produce a similar correlation between item and confidence ratings when considering standard and reversed items. In contrast, acquiescence is expected to produce opposite correlations of confidence with standard compared to reverse coded items. This latter pattern is exactly what we found. In the @seow2020 dataset, standard items were on average more positively correlated with mean confidence ratings (mean *r* across the `r print_num(SG_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='not_reversed'])` standard items = `r print_num(reversed_SG2020_t.test$estimate[1])`) than were reversed items (mean *r* across the `r print_num(SG_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='reversed'])` reversed items = `r print_num(reversed_SG2020_t.test$estimate[2])`). A t-test comparing the mean of the Pearson correlation coefficients between the two samples was statistically significant (`r  apa_print(reversed_SG2020_t.test)$full_result`; Figure \@ref(fig:reversed-items), middle panel), with a large effect size (Cohen's d = `r round(reversed_SG2020_d$Cohens_d, 2)`, 95% CI [`r round(reversed_SG2020_d$CI_low, 2)`, `r round(reversed_SG2020_d$CI_high, 2)`]). A similar pattern was also observed in the @rouault2018 dataset, where on average, standard items showed a more positive correlation with mean confidence ratings (mean *r* across the `r print_num(R2018_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='not_reversed'])` standard items = `r print_num(reversed_R2018_t.test$estimate[1])`) than reversed items (mean *r* across the `r print_num(R2018_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='reversed'])` reversed items = `r print_num(reversed_R2018_t.test$estimate[2])`, `r apa_print(reversed_R2018_t.test)$full_result` (Figure \@ref(fig:reversed-items), left panel), with a large effect size (Cohen's d = `r round(reversed_R2018_d$Cohens_d, 2)`, 95% CI [`r round(reversed_R2018_d$CI_low, 2)`, `r round(reversed_R2018_d$CI_high, 2)`]). Finally, in the @hoven2023a dataset, the same pattern was also found: standard items (mean *r* across the `r print_num(hoven_count_reversed_items_table$n[hoven_count_reversed_items_table$is_reversed=='not_reversed'])` items = `r print_num(reversed_hoven_t.test$estimate[1])`) were on average more positively correlated with confidence than reversed items (mean *r* across the `r print_num(hoven_count_reversed_items_table$n[hoven_count_reversed_items_table$is_reversed=='reversed'])` items = `r print_num(reversed_hoven_t.test$estimate[2])`, `r apa_print(reversed_hoven_t.test)$full_result`; Figure \@ref(fig:reversed-items), right panel), with a large effect size (Cohen's *d* = `r round(reversed_hoven_d$Cohens_d, 2)`, 95% CI [`r round(reversed_hoven_d$CI_low, 2)`, `r round(reversed_hoven_d$CI_high, 2)`]).
+Following this rationale, we tested the effect of coding direction (standard or reversed) on the correlation between questionnaire responses and confidence. For each item in the STAI, BIS, SDS and AES, we assessed the correlation between participants' ratings and their mean confidence level in the decision-making task. In this analysis, items were scored based on their semantic meaning, i.e. reversed items are coded using a reversed scale, as explained above. A true association between the measured construct (in the example above, anxiety) and confidence should produce a similar correlation between item and confidence ratings when considering standard and reversed items. In contrast, acquiescence is expected to produce opposite correlations of confidence with standard compared to reverse coded items. This latter pattern is exactly what we found. In the @seow2020 dataset, standard items were on average more positively correlated with mean confidence ratings (mean *r* across the `r print_num(SG_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='not_reversed'])` standard items = `r print_num(reversed_SG2020_t.test$estimate[1])`) than were reversed items (mean *r* across the `r print_num(SG_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='reversed'])` reversed items = `r print_num(reversed_SG2020_t.test$estimate[2])`). A t-test comparing the mean of the Pearson correlation coefficients between the two samples was statistically significant (`r  apa_print(reversed_SG2020_t.test)$full_result`; Figure \@ref(fig:mean-rating)B, middle panel), with a large effect size (Cohen's d = `r round(reversed_SG2020_d$Cohens_d, 2)`, 95% CI [`r round(reversed_SG2020_d$CI_low, 2)`, `r round(reversed_SG2020_d$CI_high, 2)`]). A similar pattern was also observed in the @rouault2018 dataset, where on average, standard items showed a more positive correlation with mean confidence ratings (mean *r* across the `r print_num(R2018_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='not_reversed'])` standard items = `r print_num(reversed_R2018_t.test$estimate[1])`) than reversed items (mean *r* across the `r print_num(R2018_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='reversed'])` reversed items = `r print_num(reversed_R2018_t.test$estimate[2])`, `r apa_print(reversed_R2018_t.test)$full_result` (Figure \@ref(fig:mean-rating)B, left panel), with a large effect size (Cohen's d = `r round(reversed_R2018_d$Cohens_d, 2)`, 95% CI [`r round(reversed_R2018_d$CI_low, 2)`, `r round(reversed_R2018_d$CI_high, 2)`]). Finally, in the @hoven2023a dataset, the same pattern was also found: standard items (mean *r* across the `r print_num(hoven_count_reversed_items_table$n[hoven_count_reversed_items_table$is_reversed=='not_reversed'])` items = `r print_num(reversed_hoven_t.test$estimate[1])`) were on average more positively correlated with confidence than reversed items (mean *r* across the `r print_num(hoven_count_reversed_items_table$n[hoven_count_reversed_items_table$is_reversed=='reversed'])` items = `r print_num(reversed_hoven_t.test$estimate[2])`, `r apa_print(reversed_hoven_t.test)$full_result`; Figure \@ref(fig:mean-rating)B, right panel), with a large effect size (Cohen's *d* = `r round(reversed_hoven_d$Cohens_d, 2)`, 95% CI [`r round(reversed_hoven_d$CI_low, 2)`, `r round(reversed_hoven_d$CI_high, 2)`]).
 
 This effect remained significant in all three datasets, when accounting for the main (intercept) effect of questionnaire in a mixed-effect model (Seow & Gillan, 2020: `r apa_print(conf_cor_reversed_SG2020_m)$statistic$is_reversedreversed`; Rouault et al., 2018: `r apa_print(conf_cor_reversed_R2018_m)$statistic$is_reversedreversed`; Hoven, Luigjes, et al., 2023: `r apa_print(conf_cor_reversed_hoven_m)$statistic$is_reversedreversed`; see Appendix).
-
-```{r reversed-items, echo=FALSE, fig.cap="Relationship Between Reversed-Coded Items and Item Confidence Correlation. Questionnaires: Anxiety - State-Trait Anxiety Inventory (STAI; Spielberger, 1970). Apathy - Apathy Evaluation Scale (AES; Marin et al., 1991). Depression - Self-Rating Depression Scale (SDS; Zung, 1965). Impulsivity - Barratt Impulsivity Scale (BIS-11; Patton et al., 1995). Reference line at y=0 indicates zero item confidence correlation. Left panel: results from Rouault et al., 2018, highlighting items STAI.2 (standard; ‘I feel nervous and restless’) and STAI.1 (reversed; ‘I feel pleasant’). Middle panel: results from Seow & Gillan, 2020, highlighting items SDS.1 (standard; ‘I feel down-hearted and blue’) and SDS.17 (reversed; ‘I feel that I am useful and needed’). Right panel: results from Hovel et al., 2023, highlighting items BIS.4 (standard; ‘I am happy-go-lucky’) and BIS.8 (reversed; ‘I am self-controlled.’). STAI items are not shown in the Hoven, Luigjes, et al. 2023 panel because a different anxiety inventory was used in their study, which did not include reversed items.  Asterisks denote significance (p<0.001) of a t-test for independent samples."}
-
-knitr::include_graphics("../figures/reversed_items_three_df.png")
-```
 
 ```{r skewness-confidence, include=FALSE}
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -1035,8 +955,7 @@ Rouault2018_skewness_conf <-
   ) +
   theme(
    plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5),
-  
-    axis.title = element_text(size = 18),
+    axis.title = element_text(size = 15),
     axis.text = element_text(size = 14),
     plot.margin = margin(t = 10, r = 20, b = 10, l = 10)
   ) +
@@ -1237,11 +1156,19 @@ plot_SG_sds2 <-
 skew_conf_top_panel <- Rouault2018_skewness_conf | SeowGillan_skewness_conf | hoven_skew_conf | complete_legend_skew_conf_fig
 skew_conf_bottom_panel <- plot_Rouault_eat_2 | plot_SG_sds2
 
-combined_skewness_conf_fig <- 
-  skew_conf_top_panel / skew_conf_bottom_panel + 
-  plot_layout(heights = c(2, 1.5))
+combined_skewness_conf_fig <-
+  (skew_conf_top_panel / skew_conf_bottom_panel) +
+  plot_layout(heights = c(2, 1.5)) +
+  plot_annotation(
+    tag_levels = list(c("A", "", "", "", "B", ""))
+  ) &
+  theme(
+    plot.tag = element_text(size = 18, face = "bold"),
+    plot.tag.position = c(0, 1.05)
+  )
 
-ggsave(filename = "../figures/skewness_confidence_relationship_three_df.png", combined_skewness_conf_fig, width = 14, height = 10, dpi = 300)
+ggsave(filename = "../figures/skewness_confidence_relationship_three_df.pdf", 
+       combined_skewness_conf_fig, width = 14, height = 10, dpi = 300, device = "pdf")
 
 # individual questionnaires skewness correlation with item confidence correlation 
 R2018_ind_quest_skew_conf<- 
