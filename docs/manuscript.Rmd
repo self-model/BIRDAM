@@ -1,0 +1,3067 @@
+---
+title             : "Biased and Inattentive Responding Contribute to Apparent Metacognitive Biases in Mental Health"
+shorttitle        : "Biased and Inattentive Responding Contribute to Apparent Metacognitive Biases in Mental Health"
+
+author: 
+  - name: "Noam Sarna"
+    affiliation: "1"
+    corresponding: yes  
+    address: "Tel Aviv, Israel 69978"
+    email: "noamsarna@mail.tau.ac.il"
+    
+  - name: "Reuven Dar"
+    affiliation: "1"
+
+  - name: "Matan Mazor"
+    affiliation: "2"
+
+affiliation:
+  - id: "1"
+    institution: "School of Psychological Sciences, Tel Aviv University"
+  - id: "2"
+    institution: "All Souls College and Department of Experimental Psychology, University of Oxford"
+
+abstract: |
+  Large-scale online studies with healthy adults have documented consistent associations between transdiagnostic psychiatric traits and metacognitive biases. Here, analysis of existing and new large-scale datasets reveals that such correlations may be largely due to surface-level dimensions of questionnaire-filling behaviour: systematic rating biases and inattentive responding. Specifically, a bias to report positive or negative values in self-report scales may generalize to confidence ratings, producing spurious correlations between the two. Additionally, systematic over-confidence among inattentive responders produces spurious positive correlations between confidence and the endorsement of rare symptoms. We show that previously identified transdiagnostic dimensions of “anxiety-depression” and “compulsivity and intrusive thought,” both shown to correlate with decision confidence, map neatly onto these two biases of questionnaire-filling behaviour. In a pre-registered experiment, we further show that decision confidence and self-reported obsessive-compulsive tendencies are correlated with independent measures of inattentive and biased responding. Taken together, we find substantial influence of inattentive and biased responding over both self-report psychiatric measures and confidence ratings. When not accounted for, these factors can produce a mirage of apparent metacognitive alterations in mental health. We discuss concrete precautionary measures that are needed to control for these biases.
+  
+bibliography: "r-references.bib"
+csl: "pnas.csl"
+
+floatsintext: no
+linenumbers: yes
+draft: no
+mask: no
+
+figurelist: yes
+tablelist: no
+footnotelist: no
+
+classoption: "man"
+output: papaja::apa6_word
+---
+
+```{r setup, include = FALSE, warning=FALSE}
+
+library('groundhog')
+groundhog.library(c(
+  "tidyverse",
+  "papaja", # For APA style RMD
+  "moments", #compute skewness
+  "lme4", #GLM 
+  "ggpubr", #adding coefficients to figures 
+  "effectsize", #compute effect sizes
+  "patchwork", #combining plots together
+  "cowplot", #combining plots together 
+  "psych", # For factor analysis
+  "polycor", # For heterogeneous correlation matrix (needed for FA)
+  "lmerTest" # For MLM significance testing
+  ), 
+  "2024-04-23", ignore.deps = c('knitr', 'xfun'),
+force.install=TRUE)
+
+#r_refs("r-references.bib") 
+#writes package entries to the .bib file on every knit. 
+```
+
+```{r analysis-preferences}
+# Seed for random number generation
+set.seed(42)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+
+```
+
+# Significant statement
+
+Understanding the cognitive mechanisms underlying mental health is crucial for developing effective treatments that target causes rather than symptoms. To identify these mechanisms, researchers test large samples of online participants and seek associations between their self-reported mental health tendencies (e.g., compulsivity) and their task behaviour (e.g., confidence ratings in perceptual decisions). Here we show that such associations can be driven by surface-level questionnaire-filling behaviours. In five datasets, we show that biased and inattentive responding are liable to systematically distort our understanding of the relationship between mental health and metacognition, potentially leading to false conclusions about the underlying mechanisms. We submit that a better understanding of these effects is essential for translating insights from the lab to the clinic.
+
+# Introduction
+
+The last decade in computational psychiatry can be broadly characterized by two prominent trends: the transition to transdiagnostic phenotyping and the proliferation of large online samples [@gillan2017; @boldt2025; @fox2024; @gillan2016; @huys2016; @rouault2018; @seow2021; @seowGillan2020; @wise2023; @wise2020]. These trends are linked: transdiagnostic phenotyping strives to define and classify impaired mechanisms across disorders, replacing the traditional focus on disorders as unified, though highly heterogeneous, entities [@insel2010]. In practice, this is often done by having participants complete large pool of self-report inventories and then using factor analysis to identify a low-dimensional manifold structure in the space of inventory items. Such analysis requires data from large samples, which is made possible by relying on online experimentation [@gillan2016].
+
+The original and most widely used factor analysis of this type, aiming to find a specific psychiatric dimension associated with deficits in goal-directed control, was published by Gillan et al. [@gillanGoalDirected2016]. In their analysis, three factors emerged from a pool of ten psychiatric questionnaires and were termed Anxious-Depression (AD), Compulsive Behavior and Intrusive Thought (CIT), and Social Withdrawal (SW). These factor labels were derived from the individual items with the highest and most consistent loadings on each factor. In the AD factor, the highest loading items were from questionnaires assessing trait anxiety, apathy and depression; in the CIT factor, from measures of obsessive-compulsive disorder (OCD), eating disorder and alcohol addiction; and in the SW factor, from a social anxiety inventory [@gillanGoalDirected2016].
+
+In a typical transdiagnostic computational study, once these factors are derived, their relationships with various tasks are assessed. Research looking into metacognition in mental health documented reliable associations between transdiagnostic psychiatric dimensions and confidence biases (that is, biases to be over- or under-confident in one's decisions) [@rouault2018; @seow2021; @seowGillan2020; @seow2025; @katyal2025; @mohr2024]. A prominent finding in this literature, originally documented in a perceptual discrimination task (deciding which of two briefly presented squares contained more dots), is that higher CIT factor scores were associated with higher decision confidence, and that higher AD factor scores were associated with lower decision confidence [@rouault2018]. This finding has since been replicated in other, independent samples [@benwell2022; @mohr2024; @hoven2023howDo; @seow2025; @katyal2025] and extended to a variety of cognitive tasks [e.g., a predictive inference task @seowGillan2020; a gamified version of the perceptual-decision making task @fox2024; an external reminder-usage task @boldt2025].
+
+Confidence abnormalities in psychopathology have attracted much attention as a promising model for interpreting and understanding mental health symptoms, with the transdiagnostic dimensions approach serving as an alternative for the traditional unitary diagnostic framework [for review and discussion see @hoven2019; @seow2021; @wise2023]. Here, we suggest that the well-documented associations between metacognition and transdiagnostic dimensions can arise from the interaction of psychometric properties of self-report questionnaires with response biases, to the extent that these confounding biases pose a rival explanation for any true association with mental health. In particular, we propose that the scores and derived factors that make up the widely used psychiatric dimensions reflect not only the substantive phenomena they are meant to measure (i.e., mental health) but also surface-level individual differences in questionnaire-filling behavior. Therefore, true relationships between psychiatric dimensions and confidence become indistinguishable from confounds driven by response biases.
+
+We consider two properties of questionnaire-filling behaviour that can lead to spurious correlations between psychiatric questionnaire scores and decision confidence: *acquiescence* and *inattentive responding*. Both properties can be described in the context of a process model of self-reports (Figure \@ref(fig:model)A, leftmost panel). In this model, a questionnaire item (I) induces in a respondent an "internal variable" that corresponds to their level of agreement with the content of the item. This variable is then translated, using a response selection process, to a point on a scale.
+
+Acquiescence is a property of the response selection process, reflecting the tendency of respondents to agree or disagree with self-report items irrespective of their content [@podsakoff2003] (Figure \@ref(fig:model)A, upper panels). In this paper, we use acquiescence to refer to the general tendency to have a rating bias, be it positive or negative. Acquiescence effects have been thoroughly documented, with various methods employed to detect and model them [for review see @mcgrath2010; @weijters2013]. Critically, acquiescence is likely to affect both questionnaire responses and subjective confidence ratings, potentially producing an appearance of a link between decision confidence and symptom severity (Figure \@ref(fig:model)B, left panel).
+
+An inattentive, or careless, responding style is a feature of the first part of the process model, broadly defined as responding while paying little attention to the content of questionnaire items, thereby failing to consistently generate an internal variable [@meade2012]. Inattentive respondents are thought to sample their responses semi-randomly from a nearly uniform distribution [@chandler2020; @zorowitz2023] (Figure \@ref(fig:model)A, rightmost panel). This uniformity leads to a relative increase in the endorsement of symptoms that have lower prevalence in the general population, effectively making inattentive responders appear highly symptomatic (Figure \@ref(fig:model)B; middle panel). The effect of inattentive responding on correlations with confidence rests on an empirical observation: inattentive responders tend to be overly confident in their responses. In the Results section we provide direct support for this effect, which produces spurious correlations between the endorsement of rare symptoms and decision confidence (Figure \@ref(fig:model)B, middle panel).
+
+We elaborate on these two effects in the Methods section and demonstrate their respective contributions to the reported associations between mental health and metacognition in three large datasets (Hoven, Luigjes et al. [@hoven2023howDo]; Rouault et al. [@rouault2018]; Seow & Gillan [@seow2021]) in the Results section. We then show that transdiagnostic factors of mental health are robustly aligned with surface-level questionnaire-filling behaviour. Finally, analysis of a new dataset with direct measures of inattentive responding and acquiescence reveals that these surface-level properties of questionnaire-filling behaviour are reliably correlated with psychiatric questionnaire scores and with confidence ratings in a perceptual task, consequently contribute to the positive correlation between the two.
+
+```{r model, echo=FALSE, fig.cap="A Schematic Illustration of the Effects of Acquiescence and Inattentive Responding on Item-Confidence Correlations. A) We describe the production of a self-report as a two-step process. First, a questionnaire item is read, generating an internal variable that represents a subjective level of agreement. Then, the internal variable is translated to a rating via a response selection process (arrows). We distinguish three prototypical response styles. Positive and negative acquiescence, a feature of the response selection process, correspond respectively to general tendency to agree or disagree with an item regardless of its content. Inattentive responding affects both steps of the process: no internal variable is generated, and there is a general tendency to agree. B) The effect of response style on both self-report items and confidence ratings. 'Common symptom' refers to self-report items asking about symptoms with high prevalence in the population (e.g., \"I get tired for no reason\" SDS, item 10); 'Rare symptom' refers to self-report items asking about symptoms with low prevalence in the population (e.g., \"I have the impulse to vomit after meals.\" EAT item 26); 'Common symptom (reversed)' refers to symptoms with high prevalence in the population which are articulated in a reversed tense (e.g., \"I am happy\" STAI item 10)."}
+
+knitr::include_graphics("../figures/model.png")
+```
+
+```{r load_data, message=TRUE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+#load Seow & Gillan, 2020 data including task and questionnaires item 
+SeowGillan2020_df <- read.csv('../data/SeowGillanUniteDF.csv')
+
+#load Rouault et al., 2018 data including task and questionnaires item 
+Rouault2018_df <- read.csv('../data/Rouault_unite_df.csv')
+
+#load Hoven, Luigjes, et al., 2023 
+hoven_semantic_space <- read.csv('../data/hoven_semantic_space.csv')
+
+
+#load Gillan et al., 2016 Original item weights 
+Gillan_2016_item_weights <- read.csv('../data/GillanEtAl2016_itemWeights.csv') %>% 
+  rename(item=X, #rename factors 
+         AD=X1,
+         CIT=X2,
+         SW=X3) %>%
+  filter(!grepl("^SCZ", item)) #remove SCZ items 
+```
+
+```{r define_functions, message=TRUE, warning=FALSE, include=FALSE, paged.print=FALSE}
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Function to compute skewness and item confidence correlation for each questionnaire item
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+compute_skew_cor <- function(q_prefix, data, conf_col) {
+  # Define patterns to match both naming conventions
+  pattern_dot = paste0("^", q_prefix, "\\.[0-9]+$")
+  pattern_nodot = paste0("^", toupper(q_prefix), "[0-9]+$")
+  
+  # Filter columns for the current questionnaire
+  q_columns_dot <- grep(pattern_dot, names(data), value = TRUE)
+  q_columns_nodot <- grep(pattern_nodot, names(data), value = TRUE)
+  q_columns <- c(q_columns_dot, q_columns_nodot)
+  
+  # Initialize vectors to store results
+  skewness_vals <- numeric(length(q_columns))
+  correlation_vals <- numeric(length(q_columns))
+  p_value_vals <- numeric(length(q_columns))
+  
+  # Compute skewness, correlation, and significance for each item
+  for (i in seq_along(q_columns)) {
+    # Compute Skewness
+    skewness_vals[i] <- moments::skewness(data[[q_columns[i]]], na.rm = TRUE)
+    
+    # Compute Correlation and Significance using cor.test()
+    cor_test_result <- cor.test(
+      data[[q_columns[i]]], 
+      data[[conf_col]], 
+      method = "pearson"
+    )
+    
+    # Extract correlation estimate and p-value
+    correlation_vals[i] <- cor_test_result$estimate
+    p_value_vals[i] <- cor_test_result$p.value
+  }
+  
+  # Create a data frame of results
+  result <- data.frame(
+    questionnaire = rep(q_prefix, length(q_columns)),
+    item = q_columns,
+    skewness = skewness_vals,
+    conf_cor = correlation_vals,
+    conf_cor_p = p_value_vals
+  )
+  
+  return(result)
+}
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Function to reverse the scores #########################################################
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+reverse_scores <- function(x) {
+  min_val <- min(x, na.rm = TRUE)
+  max_val <- max(x, na.rm = TRUE)
+  return(max_val + min_val - x)
+}
+
+#load costume colors for figures 
+custom_colors <- c("#1B9E77", "#D95F02")
+```
+
+# Results
+
+We start by reporting the reanalysis of three large-scale online metacognition studies, assessing both transdiagnostic dimensions and trial-by-trial confidence ratings. In these studies, participants completed questionnaires for alcohol use [Alcohol Use Disorder Identification Test, AUDIT; @saunders1993], apathy [Apathy Evaluation Scale, AES; @marin1991], depression [Self-Rating Depression Scale, SDS; @zung1965], eating attitudes (Eating Attitudes Test, EAT-26; @garner1982), impulsivity (Barratt Impulsivity Scale, BIS-11; @patton1995), obsessive-compulsive tendencies (Obsessive-Compulsive Inventory -- Revised, OCI-R; @foa2002), schizotypy (Short scales for measuring schizotypy; @mason2005), social anxiety (Liebowitz Social Anxiety Scale, LSAS; @liebowitz1987) and anxiety. For anxiety, Rouault et al. [@rouault2018] and Seow & Gillan [@seowGillan2020] used the State-Trait Anxiety Inventory (STAI; @spielberger1970), whereas Hoven, Luigjes et al. [@hoven2023howDo] used the Generalized Anxiety Disorder scale (GAD-7; @spitzer2006). The same participants also rated their confidence in perceptual decisions. In Rouault et al. [@rouault2018] (Exp. 2) and Hoven, Luigjes et al. [@hoven2023howDo] (Appendix Figure A1, left panel), participants decided which of two briefly presented boxes had more dots in it and rated their subjective confidence on a 6-point or 50-point scale respectively. In Seow & Gillan [@seowGillan2020] (Appendix Figure A1, right panel), participants positioned a bucket to catch a flying particle and rated their subjective confidence on a 100-point scale. For more detail about the datasets reanalyzed here, see the Supplementary Methods.
+
+```{r, data-wrangling, include = FALSE}
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# reversed items and response bias analysis ##############################################
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+#create mutual variable names between data sets 
+anxiety_items <- paste0("anxiety.", 1:20)
+eat_items <- paste0("eat.", 1:26)
+alcohol_items <- paste0("alcohol.", 1:10)
+zung_items <- paste0("zung.", 1:20)
+ocir_items <- paste0("ocir.", 1:18)
+leb_items <- paste0("leb.", 1:24)
+bis_items <- paste0("bis.", 1:30)
+apathy_items <- paste0("apathy.", 1:18)
+
+#hoven specific 
+gad_anxiety_items <-paste0("anxiety.", 1:7)
+
+all_items <- c(anxiety_items, eat_items, alcohol_items, zung_items, ocir_items, leb_items, bis_items, apathy_items)
+
+all_items_hoven <- c(gad_anxiety_items, eat_items, alcohol_items, zung_items, ocir_items, leb_items, bis_items, apathy_items)
+
+# Ensure consistent column names for id and mean confidence
+names(SeowGillan2020_df)[names(SeowGillan2020_df) == "qnid"] <- "id"
+names(Rouault2018_df)[names(Rouault2018_df) == "id"] <- "id"
+names(hoven_semantic_space)[names(hoven_semantic_space) =='Subject'] <- "id"
+
+names(SeowGillan2020_df)[names(SeowGillan2020_df) == "mean_conf"] <- "mean_confidence"
+names(Rouault2018_df)[names(Rouault2018_df) == "confMean"] <- "mean_confidence"
+names(hoven_semantic_space)[names(hoven_semantic_space) =='mean_localconf'] <- "mean_confidence"
+
+# Convert id columns to character type
+SeowGillan2020_df$id <- as.character(SeowGillan2020_df$id)
+Rouault2018_df$id <- as.character(Rouault2018_df$id)
+hoven_semantic_space$id <- as.character(hoven_semantic_space$id)
+
+
+# Rename columns in SeowGillan 2020
+names(SeowGillan2020_df)[grep("^STAI", names(SeowGillan2020_df))] <- anxiety_items
+names(SeowGillan2020_df)[grep("^EAT", names(SeowGillan2020_df))] <- eat_items
+names(SeowGillan2020_df)[grep("^ALCOHOL", names(SeowGillan2020_df))] <- alcohol_items
+names(SeowGillan2020_df)[grep("^SDS", names(SeowGillan2020_df))] <- zung_items
+names(SeowGillan2020_df)[grep("^OCI", names(SeowGillan2020_df))] <- ocir_items
+names(SeowGillan2020_df)[grep("^LSASONE", names(SeowGillan2020_df))] <- leb_items
+names(SeowGillan2020_df)[grep("^BIS", names(SeowGillan2020_df))] <- bis_items
+names(SeowGillan2020_df)[grep("^AES", names(SeowGillan2020_df))] <- apathy_items
+
+#Rename columns in Gillan weights 
+Gillan_2016_item_weights$item <- gsub("^STAI_", "anxiety.", Gillan_2016_item_weights$item)
+Gillan_2016_item_weights$item <- gsub("^BIS_", "bis.", Gillan_2016_item_weights$item)
+Gillan_2016_item_weights$item <- gsub("^EAT_", "eat.", Gillan_2016_item_weights$item)
+Gillan_2016_item_weights$item <- gsub("^OCI_", "ocir.", Gillan_2016_item_weights$item)
+Gillan_2016_item_weights$item <- gsub("^AES_", "apathy.", Gillan_2016_item_weights$item)
+Gillan_2016_item_weights$item <- gsub("^AUDIT_", "alcohol.", Gillan_2016_item_weights$item)
+Gillan_2016_item_weights$item <- gsub("^SDS_", "zung.", Gillan_2016_item_weights$item)
+Gillan_2016_item_weights$item <- gsub("^LSAS_", "leb.", Gillan_2016_item_weights$item)
+
+# Rename columns in Hoven 2023
+names(hoven_semantic_space)[grep("^GAD", names(hoven_semantic_space))] <- gad_anxiety_items
+names(hoven_semantic_space)[grep("^EAT", names(hoven_semantic_space))] <- eat_items
+names(hoven_semantic_space)[grep("^alcohol", names(hoven_semantic_space))] <- alcohol_items
+names(hoven_semantic_space)[grep("^depression", names(hoven_semantic_space))] <- zung_items
+names(hoven_semantic_space)[grep("^OCD", names(hoven_semantic_space))] <- ocir_items
+names(hoven_semantic_space)[grep("^socanx", names(hoven_semantic_space))] <- leb_items
+names(hoven_semantic_space)[grep("^impulsiv", names(hoven_semantic_space))] <- bis_items
+names(hoven_semantic_space)[grep("^apathy", names(hoven_semantic_space))] <- apathy_items
+
+# Define reversed items
+reversed_items <- c(
+  "bis.1", "bis.7", "bis.8", "bis.9", "bis.10", "bis.12", "bis.13", "bis.15", "bis.20", "bis.29", "bis.30",
+  "eat.25",
+  "anxiety.1", "anxiety.3", "anxiety.6", "anxiety.7", "anxiety.10", "anxiety.13", "anxiety.14", "anxiety.16", "anxiety.19",
+  "zung.2", "zung.5", "zung.6", "zung.11", "zung.12", "zung.14", "zung.16", "zung.17", "zung.18", "zung.20",
+  "apathy.1", "apathy.2", "apathy.3", "apathy.4", "apathy.5", "apathy.7", "apathy.8", "apathy.9",
+  "apathy.12", "apathy.13","apathy.14", "apathy.15", "apathy.16","apathy.17","apathy.18")
+
+non_reversed_items <- setdiff(all_items, reversed_items)
+
+hoven_reversed_items <- c(
+  "bis.1", "bis.7", "bis.8", "bis.9", "bis.10", "bis.12", "bis.13", "bis.15", "bis.20", "bis.29", "bis.30",
+  "eat.25",
+  "zung.2", "zung.5", "zung.6", "zung.11", "zung.12", "zung.14", "zung.16", "zung.17", "zung.18", "zung.20",
+  "apathy.1", "apathy.2", "apathy.3", "apathy.4", "apathy.5", "apathy.7", "apathy.8", "apathy.9",
+  "apathy.12", "apathy.13","apathy.14", "apathy.15", "apathy.16","apathy.17","apathy.18")
+
+non_reversed_items_hoven <- setdiff(all_items_hoven, hoven_reversed_items)
+
+# Calculate acquiescence as mean for positive - mean for negative items 
+SeowGillan2020_df$mean_non_reversed <- rowMeans(SeowGillan2020_df[non_reversed_items], na.rm = TRUE)
+SeowGillan2020_df$mean_reversed <- rowMeans(SeowGillan2020_df[reversed_items], na.rm = TRUE)
+SeowGillan2020_df$mean_diff <- SeowGillan2020_df$mean_non_reversed - SeowGillan2020_df$mean_reversed
+
+Rouault2018_df$mean_non_reversed <- rowMeans(Rouault2018_df[non_reversed_items], na.rm = TRUE)
+Rouault2018_df$mean_reversed <- rowMeans(Rouault2018_df[reversed_items], na.rm = TRUE)
+Rouault2018_df$mean_diff <- Rouault2018_df$mean_non_reversed - Rouault2018_df$mean_reversed
+
+hoven_semantic_space$mean_non_reversed <- rowMeans(hoven_semantic_space[non_reversed_items_hoven], na.rm = TRUE)
+hoven_semantic_space$mean_reversed <- rowMeans(hoven_semantic_space[hoven_reversed_items], na.rm = TRUE)
+hoven_semantic_space$mean_diff <- hoven_semantic_space$mean_non_reversed - hoven_semantic_space$mean_reversed
+```
+
+```{r, rating-bias-analysis, include = FALSE}
+#-----------------------------------------------------------------
+# Analysis 1.1: Correlations between mean_diff and mean_confidence
+#-----------------------------------------------------------------
+# Rouault
+rouault_mean_diff_confidence_cor <-
+  cor.test(
+    Rouault2018_df$mean_diff,
+    Rouault2018_df$mean_confidence,
+    method = "pearson"
+  )
+
+# Seow & Gillan
+seowgillan_mean_diff_confidence_cor <-
+  cor.test(
+    SeowGillan2020_df$mean_diff,
+    SeowGillan2020_df$mean_confidence,
+    method = "pearson"
+  )
+
+# Hoven
+hoven_mean_diff_confidence_cor <-
+  cor.test(
+    hoven_semantic_space$mean_diff,
+    hoven_semantic_space$mean_confidence,
+    method = "pearson"
+  )
+```
+
+```{r item-level-skewness-wrangling, include=FALSE}
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#compute item-level skewness score and correlation with mean confidence
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#----- predictive inference task Seow & Gillan -------
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+# List of questionnaires
+SG2020_questionnaires <- c("anxiety", "eat", "alcohol", "zung", "ocir", "leb", "bis", "apathy")
+
+# Applying the function to each questionnaire and combining results
+SG2020_skew_conf_list <- lapply(SG2020_questionnaires, compute_skew_cor, data = SeowGillan2020_df, conf_col='mean_confidence')
+SG2020_items_table <- do.call(rbind, SG2020_skew_conf_list) # transform into a df 
+
+# Rename questionnaire values for unified formating between dfs
+SG2020_items_table <- SG2020_items_table %>%
+  mutate(questionnaire = case_when(
+    questionnaire == 'zung' ~ 'depression',
+    questionnaire == 'ocir' ~ 'ocd',
+    questionnaire == 'leb' ~ 'social_anxiety',
+    questionnaire == 'bis' ~ 'impulsivity',
+    TRUE ~ questionnaire
+  ))
+
+# Positive/negative threshold: take the critical r value 
+# sample size
+n_SG <- SeowGillan2020_df %>% pull(id) %>% unique() %>% length()
+# critical t of a two tailed test with alpha of 0.05 
+t_crit_SG <- qt(0.975, df = n_SG - 2)
+# get critical r value 
+r_crit_SG <- t_crit_SG / sqrt(t_crit_SG^2 + (n_SG - 2))
+r_crit_SG
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#----- perceptual discrimination task Rouault et al 2018 -------
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# List of questionnaires
+R2018_questionnaires <- c("anxiety", "eat", "alcohol", "zung", "ocir", "leb", "bis", "apathy")
+
+# Applying the function to each questionnaire and combining results
+R2018_skew_conf_list <- lapply(R2018_questionnaires, compute_skew_cor, data = Rouault2018_df, conf_col='mean_confidence')
+R2018_items_table <- do.call(rbind, R2018_skew_conf_list)
+
+# Rename questionnaire values for unified formatting between dfs
+R2018_items_table <- R2018_items_table %>%
+  mutate(questionnaire = case_when(
+    questionnaire == 'zung' ~ 'depression',
+    questionnaire == 'ocir' ~ 'ocd',
+    questionnaire == 'leb' ~ 'social_anxiety',
+    questionnaire == 'bis' ~ 'impulsivity',
+    TRUE ~ questionnaire
+  ))
+
+# Positive/negative threshold: take the critical r value 
+# sample size
+n_R <- Rouault2018_df %>% pull(id) %>% unique() %>% length()
+# critical t of a two tailed test with alpha of 0.05 
+t_crit_R <- qt(0.975, df = n_R - 2)
+# get critical r value 
+r_crit_R <- t_crit_R / sqrt(t_crit_R^2 + (n_R - 2))
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#----- perceptual discrimination task Hoven, Luigjes, et al 2023 -------
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# List of questionnaires
+hoven_questionnaires <- c("anxiety", "eat", "alcohol", "zung", "ocir", "leb", "bis", "apathy")
+
+# Applying the function to each questionnaire and combining results
+hoven_skew_conf_list <- lapply(hoven_questionnaires, compute_skew_cor, data = hoven_semantic_space, conf_col='mean_confidence')
+hoven_items_table <- do.call(rbind, hoven_skew_conf_list)
+
+# Rename questionnaire values for unified formatting between dfs
+hoven_items_table <- hoven_items_table %>% 
+    mutate(questionnaire = case_when(
+    questionnaire == 'zung' ~ 'depression',
+    questionnaire == 'ocir' ~ 'ocd',
+    questionnaire == 'leb' ~ 'social_anxiety',
+    questionnaire == 'bis' ~ 'impulsivity',
+    questionnaire == 'anxiety' ~ 'gad_anxiety',
+    TRUE ~ questionnaire
+  ))
+
+# Positive/negative threshold: take the critical r value 
+# sample size
+n_H <- hoven_semantic_space %>% pull(id) %>% unique() %>% length()
+# critical t of a two tailed test with alpha of 0.05 
+t_crit_H <- qt(0.975, df = n_H - 2)
+# get critical r value 
+r_crit_H <- t_crit_H / sqrt(t_crit_H^2 + (n_H - 2))
+r_crit_H
+
+#---------- Reversed items coding -------------------
+#add reversed coding to both data frames 
+R2018_items_table <- R2018_items_table %>%
+  mutate(is_reversed = ifelse(item %in% reversed_items, "reversed", "not_reversed"))
+
+SG2020_items_table <- SG2020_items_table %>% 
+  mutate(is_reversed = ifelse(item %in% reversed_items, "reversed", "not_reversed"))
+
+hoven_items_table <- hoven_items_table %>% 
+  mutate(is_reversed = ifelse(item %in% hoven_reversed_items, "reversed", "not_reversed"))
+
+```
+
+```{r plot-acquiescence-proxies, include=FALSE}
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# plot acquiescence proxies and confidence correlation#####
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#--------------------------------------------------
+# Mean rating diff confidence correlation
+#--------------------------------------------------
+# Create r / p labels in italic(r) == ... format
+rouault_mean_rating_label <- ifelse(
+  rouault_mean_diff_confidence_cor$p.value < 0.001,
+  paste0(
+    "italic(r) == ",
+    signif(rouault_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) < 0.001"
+  ),
+  paste0(
+    "italic(r) == ",
+    signif(rouault_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) == ",
+    signif(rouault_mean_diff_confidence_cor$p.value, 3)
+  )
+)
+
+seowGillan_mean_rating_label <- ifelse(
+  seowgillan_mean_diff_confidence_cor$p.value < 0.001,
+  paste0(
+    "italic(r) == ",
+    signif(seowgillan_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) < 0.001"
+  ),
+  paste0(
+    "italic(r) == ",
+    signif(seowgillan_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) == ",
+    signif(seowgillan_mean_diff_confidence_cor$p.value, 3)
+  )
+)
+
+hoven_mean_rating_label <- ifelse(
+  hoven_mean_diff_confidence_cor$p.value < 0.001,
+  paste0(
+    "italic(r) == ",
+    signif(hoven_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) < 0.001"
+  ),
+  paste0(
+    "italic(r) == ",
+    signif(hoven_mean_diff_confidence_cor$estimate, 2),
+    "*','~italic(p) == ",
+    signif(hoven_mean_diff_confidence_cor$p.value, 3)
+  )
+)
+
+base_upper_theme <- theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 15, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 12),
+    axis.text  = element_text(size = 12),
+    aspect.ratio = 1,
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.3),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(t = 10, r = 20, b = 0, l = 20)
+  )
+
+#--------------------------------------------------
+# Rouault et al. 2018
+#--------------------------------------------------
+rouault_mean_rating_fig <-
+  ggplot(Rouault2018_df, aes(x = mean_diff, y = mean_confidence)) +
+  geom_point(alpha = 0.5, size = 1.3, color = "gray30")+
+  geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 0.8, alpha = 0.15)+
+  annotate(
+    "text",
+    x = -Inf, y = -Inf,
+    hjust = -0.1, vjust = 0.1,
+    label = rouault_mean_rating_label,
+    parse = TRUE,
+    size = 4
+  )+
+  labs(
+    title = "Rouault et al., 2018",
+    x = "Rating delta",
+    y = "Mean confidence\n(1\u002D6 scale)"
+  ) +
+  coord_cartesian(xlim = c(-2.8, 1.5), ylim = c(1, 6)) +
+  base_upper_theme
+#--------------------------------------------------
+# Seow & Gillan 2020
+#--------------------------------------------------
+seowGillan_mean_rating_fig <-
+  ggplot(SeowGillan2020_df, aes(x = mean_diff, y = mean_confidence)) +
+  geom_point(alpha = 0.5, size = 1.3, color = "gray30")+
+  geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 0.8, alpha = 0.15)+
+  annotate(
+    "text",
+    x = -Inf, y = -Inf,
+    hjust = -0.1, vjust = 0.1,
+    label = seowGillan_mean_rating_label,
+    parse = TRUE,
+    size = 4
+  )+
+  labs(
+    title = "Seow & Gillan, 2020",
+    x = "Rating delta",
+    y = "Mean confidence\n(1\u002D100 scale)"
+  ) +
+  coord_cartesian(xlim = c(-2.8, 1.5), ylim = c(1, 100)) +
+  base_upper_theme
+
+#--------------------------------------------------
+# Hoven, Luigjes et al. 2023
+#--------------------------------------------------
+hoven_mean_rating_fig <-
+  ggplot(hoven_semantic_space, aes(x = mean_diff, y = mean_confidence)) +
+  geom_point(alpha = 0.5, size = 1.3, color = "gray30")+
+  geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 0.8, alpha = 0.15)+
+  annotate(
+    "text",
+    x = -Inf, y = -Inf,
+    hjust = -0.1, vjust = 0.1,
+    label = hoven_mean_rating_label,
+    parse = TRUE,
+    size = 4
+  )+
+  labs(
+    title = "Hoven, Luigjes et al., 2023",
+    x = "Rating delta",
+    y = "Mean confidence\n(50\u002D100 scale)"
+  ) +
+  coord_cartesian(xlim = c(-2.8, 1.5), ylim = c(50, 100)) +
+  base_upper_theme
+
+#--------------------------------------------------
+# plot reversed items confidence correlation figures
+#--------------------------------------------------
+
+# Define consistent shape mapping for questionnaires
+questionnaire_shape_map <- c(
+  "alcohol" = 0,
+  "social_anxiety" = 1,   
+  "ocd" = 11,              
+  "eat" = 5,
+  "depression" = 18,        
+  "impulsivity" = 20,    
+  "apathy" = 15,
+  "anxiety" = 17,
+  "gad_anxiety" = 2
+)
+
+base_lower_theme <- theme_minimal(base_size = 14) +
+  theme(
+    axis.title = element_text(size = 12),
+    axis.text  = element_text(size = 12),
+    aspect.ratio = 1,
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
+# Rouault et al., 2018 plot
+R2018_reversed_fig <-
+  R2018_items_table %>%
+  filter(questionnaire == 'anxiety' | questionnaire == 'depression' | questionnaire == 'impulsivity' |
+           questionnaire == 'apathy') %>%
+  mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = is_reversed, y = conf_cor)) +
+  geom_abline(intercept=0, slope=0) +
+  geom_jitter(aes(color = is_reversed, shape = questionnaire), width = 0.2, height = 0, size = 3, alpha=0.6) +
+  stat_summary(fun = mean,
+               geom = "point",
+               position = position_dodge(0.9),
+               size = 3, 
+               alpha = 0.5,
+               color = "black",
+               shape = 21,
+               group = 1) +
+  stat_summary(fun.data = mean_se,
+               geom = "errorbar",
+               width = 0.2,
+               position = position_dodge(0.9),
+               color = "black",
+               group = 1) +
+  geom_signif(comparisons = list(c("not_reversed", "reversed")),
+              map_signif_level = TRUE,
+               test = "t.test",
+              color = "black",
+              size = 0.6,
+              textsize = 6,
+              y_position = 0.25) +
+  labs(title = "", x = "", y = "Item confidence correlation") +
+  geom_hline(yintercept = r_crit_R, linetype = "dashed", size = 0.7) +
+  geom_hline(yintercept = -r_crit_R, linetype = "dashed", size = 0.7) +
+  scale_shape_manual(values = questionnaire_shape_map, guide = "none")+
+  scale_color_manual(values = custom_colors, guide = "none")+
+  scale_x_discrete(labels = c("not_reversed" = "Standard", "reversed" = "Reversed"))+
+  coord_cartesian(ylim = c(-0.2, 0.3)) +
+  base_lower_theme
+
+# Seow & Gillan, 2020 plot
+SG2020_reversed_fig <-
+  SG2020_items_table %>%
+  filter(questionnaire == 'anxiety' | questionnaire == 'depression' | questionnaire == 'impulsivity' |
+           questionnaire == 'apathy') %>%
+  mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = is_reversed, y = conf_cor)) +
+  geom_abline(intercept=0, slope=0) +
+  geom_jitter(aes(color = is_reversed, shape = questionnaire), width = 0.2, height = 0, size = 3, alpha=0.6) +
+  stat_summary(fun = mean,
+               geom = "point",
+               position = position_dodge(0.9),
+               size = 3, 
+               alpha = 0.5,
+               color = "black",
+               shape = 21,
+               group = 1) +
+  stat_summary(fun.data = mean_se,
+               geom = "errorbar",
+               width = 0.2,
+               position = position_dodge(0.9),
+               color = "black",
+               group = 1) +
+  geom_signif(comparisons = list(c("not_reversed", "reversed")),
+              map_signif_level = TRUE,
+              test = "t.test",
+              color = "black",
+              size = 0.6,
+              textsize = 6,
+              y_position = 0.25) +
+  labs(title = "", x = "", y = "") +
+  geom_hline(yintercept = r_crit_SG, linetype = "dashed", size = 0.7) +
+  geom_hline(yintercept = -r_crit_SG, linetype = "dashed", size = 0.7) +
+  scale_shape_manual(values = questionnaire_shape_map, guide = "none")+
+  scale_color_manual(values = custom_colors, guide = "none")+
+  scale_x_discrete(labels = c("not_reversed" = "Standard", "reversed" = "Reversed"))+
+  coord_cartesian(ylim = c(-0.2, 0.3)) +
+  base_lower_theme
+
+# Hoven, Luigjes, et al., 2023 plot
+hoven_reversed_fig <-
+  hoven_items_table %>%
+  mutate(
+    questionnaire = case_when(
+      questionnaire == "zung" ~ "depression",
+      questionnaire == "bis" ~ "impulsivity",
+      TRUE ~ questionnaire
+    )
+  ) %>%
+  filter(questionnaire %in% c('depression', 'impulsivity', 'apathy')) %>%
+  mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = is_reversed, y = conf_cor)) +
+  geom_abline(intercept=0, slope=0) +
+  geom_jitter(aes(color = is_reversed, shape = questionnaire), width = 0.2, height = 0, size = 3, alpha=0.6) +
+  stat_summary(fun = mean,
+               geom = "point",
+               position = position_dodge(0.9),
+               size = 3, 
+               alpha = 0.5,
+               color = "black",
+               shape = 21,
+               group = 1) +
+  stat_summary(fun.data = mean_se,
+               geom = "errorbar",
+               width = 0.2,
+               position = position_dodge(0.9),
+               color = "black",
+               group = 1) +
+  geom_signif(comparisons = list(c("not_reversed", "reversed")),
+              map_signif_level = TRUE,
+              test = "t.test",
+              color = "black",
+              size = 0.6,
+              textsize = 6,
+              y_position = 0.25) +
+  labs(title = "", x = "", y = "") +
+   scale_shape_manual(values = questionnaire_shape_map, guide = "none")+
+  scale_color_manual(values = custom_colors, guide = "none")+
+  scale_x_discrete(labels = c("not_reversed" = "Standard", "reversed" = "Reversed"))+
+  geom_hline(yintercept = r_crit_H, linetype = "dashed", size = 0.7) +
+  geom_hline(yintercept = -r_crit_H, linetype = "dashed", size = 0.7) +
+  coord_cartesian(ylim = c(-0.2, 0.3)) +
+  base_lower_theme
+
+# Create complete legend with all questionnaire types and color (reversed items)
+reversed_legend_data <- data.frame(
+  questionnaire = rep(factor(c("depression", "impulsivity", "apathy", "anxiety"), 
+                             levels = names(questionnaire_shape_map)), 2),
+  is_reversed = rep(c("not_reversed", "reversed"), each = 4),
+  x = rep(1, 8),
+  y = rep(1, 8)
+)
+
+reversed_legend_plot <- ggplot(reversed_legend_data, aes(x = x, y = y, shape = questionnaire, color = is_reversed)) +
+  geom_point(size = 3, alpha=0.6) +
+  scale_shape_manual(
+    values = questionnaire_shape_map,
+    labels = c(
+      "depression" = "Depression (SDS)",
+      "impulsivity" = "Impulsivity (BIS)",
+      "apathy" = "Apathy",
+      "anxiety" = "STAI-anxiety"
+    ),
+    breaks = c("depression", "impulsivity", "apathy", "anxiety"),
+    drop = FALSE,
+    name = ""
+  ) +
+  scale_color_manual(
+    values = custom_colors,
+    labels = c("not_reversed" = "Standard", "reversed" = "Reversed"),
+    name = ""
+  ) +
+  theme_void() +
+  theme(legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
+        legend.key.size = unit(1.2, "lines"),
+        legend.spacing.y = unit(0.3, "cm")) +
+  guides(
+    shape = guide_legend(
+      title = "Questionnaire",
+      override.aes = list(
+        color = "black", 
+        fill = "black",
+        alpha = 1,
+        size = 3
+      )
+    ),
+    color = guide_legend(override.aes = list(shape = 16))
+  )
+
+# Extract just the legend
+complete_legend_reversed <- cowplot::get_legend(reversed_legend_plot)
+legend_grob_reversed <- patchwork::wrap_elements(complete_legend_reversed)
+
+# Assemble final figure
+acq_prox_top_row <-
+  ((rouault_mean_rating_fig |
+    seowGillan_mean_rating_fig |
+    hoven_mean_rating_fig |
+    plot_spacer()) &
+     theme(plot.margin = margin(t = 0, r = 20, b = 0, l = 20)))
+
+acq_prox_bottom_row <-
+  ((R2018_reversed_fig |
+    SG2020_reversed_fig |
+    hoven_reversed_fig |
+    wrap_elements(complete_legend_reversed)) &
+     theme(plot.margin = margin(t = 0, r = 10, b = 0, l = 20))) 
+
+acq_prox_final_fig <-
+  (acq_prox_top_row / acq_prox_bottom_row) +
+  plot_layout(
+    widths  = c(1.2, 1.2, 1.2, 0.75),
+    heights = c(1, 1)) +
+  plot_annotation(
+    tag_levels = list(c("A", "", "", "B", "", "", "", ""))) &
+  theme(plot.tag = element_text(size = 18, face = "bold"))
+
+ggsave(
+  filename = "../figures/acquiescence_proxies_confidence.png",
+  plot = acq_prox_final_fig,
+  #device = cairo_pdf,
+  width = 12,
+  height = 8,
+  dpi = 300
+)
+
+#--------------------------------------
+# significance testing and effect size 
+#-------------------------------------
+
+# Seow & Gillan 2020
+reversed_SG2020_t.test<-  
+SG2020_items_table %>% 
+  filter(questionnaire == 'anxiety' | questionnaire == 'depression' | questionnaire == 'impulsivity' | 
+           questionnaire == 'apathy') %>% t.test(conf_cor~is_reversed, data=.) 
+
+reversed_SG2020_d <- cohens_d(
+  conf_cor ~ is_reversed,
+  data = SG2020_items_table %>% 
+    filter(questionnaire == 'anxiety' | questionnaire == 'depression' | 
+           questionnaire == 'impulsivity' | questionnaire == 'apathy'))
+
+# Rouault 2018
+reversed_R2018_t.test<-  
+R2018_items_table %>% 
+  filter(questionnaire == 'anxiety' | questionnaire == 'depression' | questionnaire == 'impulsivity' | 
+           questionnaire == 'apathy') %>% t.test(conf_cor~is_reversed, data=.) 
+
+reversed_R2018_d <- cohens_d(
+  conf_cor ~ is_reversed,
+  data = R2018_items_table %>% 
+    filter(questionnaire == 'anxiety' | questionnaire == 'depression' | 
+           questionnaire == 'impulsivity' | questionnaire == 'apathy')
+)
+
+# Hoven 2023
+reversed_hoven_t.test<-
+  hoven_items_table %>% 
+  filter(questionnaire == 'depression' | questionnaire == 'impulsivity' | 
+           questionnaire == 'apathy') %>% t.test(conf_cor~is_reversed, data=.)
+
+reversed_hoven_d <- cohens_d(
+  conf_cor ~ is_reversed,
+  data = hoven_items_table %>% 
+    filter(questionnaire == 'depression' | 
+           questionnaire == 'impulsivity' | questionnaire == 'apathy')
+)
+
+# count how many reversed items  
+SG_count_reversed_items_table <- 
+  SG2020_items_table %>% 
+  filter(questionnaire == "anxiety" | questionnaire == "depression" | questionnaire == "impulsivity" | 
+           questionnaire == "apathy") %>% 
+  group_by(is_reversed) %>% 
+  summarise(n = n())
+
+R2018_count_reversed_items_table <- 
+  R2018_items_table %>% 
+  filter(questionnaire == "anxiety" | questionnaire == "depression" | questionnaire == "impulsivity" | 
+           questionnaire == "apathy") %>% 
+  group_by(is_reversed) %>% 
+  summarise(n = n())
+
+hoven_count_reversed_items_table <- 
+  hoven_items_table %>% 
+  filter(questionnaire %in% c("depression", "impulsivity", "apathy")) %>% 
+  group_by(is_reversed) %>% 
+  summarise(n = n())
+
+
+# linear mixed models   
+# Rouault 2018 
+conf_cor_reversed_R2018_m <- lmerTest::lmer(conf_cor ~ is_reversed + (1 | questionnaire), data = R2018_items_table %>% filter(questionnaire == 'anxiety' | questionnaire == 'depression' | questionnaire == 'impulsivity' | 
+           questionnaire == 'apathy'))
+
+
+#Seow and Gillan 2020 
+conf_cor_reversed_SG2020_m <- lmerTest::lmer(conf_cor ~ is_reversed + (1 | questionnaire), data = SG2020_items_table %>% filter(questionnaire == 'anxiety' | questionnaire == 'depression' | questionnaire == 'impulsivity' | 
+           questionnaire == 'apathy'))
+
+# hoven 2023
+conf_cor_reversed_hoven_m <- lmerTest::lmer(
+  conf_cor ~ is_reversed + (1 | questionnaire),
+  data = hoven_items_table %>%
+    filter(questionnaire %in% c('depression', 'impulsivity', 'apathy'))
+)
+
+```
+
+### Analysis 1.1: Testing the effect of acquiescence on confidence rating
+
+Confidence ratings are similar to psychiatric questionnaire items in that they require participants to translate an internal representation to a number, or a point on a scale. As such, they may be subject to similar biases. For example, participants showing positive acquiescence in their rating of psychiatric items (a tendency to produce high ratings) would also tend to show positive acquiescence in their confidence rating (a tendency to report high confidence). This will affect both their apparent mental health profile and, crucially, their mean self-reported confidence level, producing a spurious correlation between the two (Figure \@ref(fig:model)B, leftmost panel). To test whether acquiescence plays a role in the association between confidence and psychiatric dimensions, we calculated for each participant their mean confidence rating over all trials in the perceptual decision-making task, and an acquiescence proxy based on the average rating across all questionnaire items. As some of the self-report items are reversed-phrased, i.e. phrased such that agreement indicates lower endorsement of the construct, they must be reverse-scored to align with the scale's direction (we elaborate on this in the next section). To account for this, we calculated this proxy as the rating delta between standard and reversed items across all psychiatric inventories (for more details see Supplementary Methods).
+
+In Seow & Gillan [@seowGillan2020], there was a positive correlation between mean item rating and mean confidence rating (`r apa_print(seowgillan_mean_diff_confidence_cor)$full_result`; Figure \@ref(fig:mean-rating)A, middle panel), such that higher mean ratings across items were associated with higher mean confidence ratings. A positive correlation was also found in Rouault et al. [@rouault2018] (`r apa_print(rouault_mean_diff_confidence_cor)$full_result`) and in Hoven, Luigjes et al. [@hoven2023howDo] (`r apa_print(hoven_mean_diff_confidence_cor)$full_result`). These results can mean at least one of two things: either that psychiatric symptoms, as measured with these questionnaires, are truly associated with higher levels of decision confidence, or that acquiescence in self-report rating scales affects both responses to questionnaire items and confidence ratings, producing a spurious correlation between the two. Our next analysis provides direct support for the second alternative.
+
+```{r mean-rating, echo=FALSE, fig.cap="Associations Between Acquiescence-Related Measures and Confidence Across Three Datasets. Left column: Rouault et al. (2018). Middle column: Seow and Gillan (2020). Right column: Hoven, Luigjes, et al. (2023). (A) Correlation between rating delta and mean confidence rating. Each point represents a single participant’s rating delta (mean rating for standard items minus mean rating for reversed items, after reversal) across all inventories and mean confidence rating across all trials. The red line represents a linear regression fit, and the shaded gray area represents the standard error of the fit. (B) Relationship between reversed-coded items and item confidence correlation. Each point represents a questionnaire item with the shapes indicating different questionnaires. Standard and reversed items are color-coded. Black circles denote the mean item–confidence correlation for standard items (left) and reversed items (right), and the vertical bars represent the standard error of the mean. Reference line at y=0 indicates zero item confidence correlation. Black dashed horizontal lines denote the correlation significance thresholds at alpha=0.05, two-sided: for positive correlations, values above the line are significant, and for negative correlations, values below the line are significant. STAI items do not appear in the Hoven, Luigjes, et al. (2023) panel because that study used a different anxiety inventory that did not include reversed items. Asterisks denote significance (p<.001) of a t-test for independent samples."}
+knitr::include_graphics("../figures/acquiescence_proxies_confidence_small_spaces.png")
+```
+
+### Analysis 1.2: The effect of acquiescence reflected in reversed coded items
+
+To further assess the magnitude and impact of acquiescence on confidence, we made use of the fact that some questionnaires measuring anxiety (STAI; @spielberger1970), impulsivity (BIS-11; @patton1995), depression (SDS; @zung1965) and apathy (AES; @marin1991) include reverse-coded items: items that tap into the same cognitive constructs but phrased in opposite ways. For example, items 1 and 2 in the STAI read "I feel pleasant" and "I feel nervous and restless," respectively (possible answers: "Almost never", "Sometimes", "Often", and "Almost always"). Item 1 is a reversed item. An answer of "Almost always" to this item is coded as 1, and an answer of "Almost never" is coded as 4. The opposite is true for STAI item 2. Crucially, valid responses to these two items should show opposite trends --- low endorsement of pleasantness should be associated with high endorsement of restlessness and vice versa. Conversely, acquiescence is expected to result in an inconsistency between the anxiety scores derived from regular and reversed items, namely high or low endorsement of both pleasantness and restlessness [@weijters2013].
+
+Following this rationale, we tested the effect of coding direction (standard or reversed) on the correlation between questionnaire responses and confidence. For each item in the STAI, BIS, SDS and AES, we assessed the correlation between participants' ratings and their mean confidence level in the decision-making task. In this analysis, items were scored based on their semantic meaning, i.e. reversed items are coded using a reversed scale, as explained above. A true association between the measured construct (in the example above, anxiety) and confidence should produce a similar correlation between item and confidence ratings when considering standard and reversed items. In contrast, acquiescence is expected to produce opposite correlations of confidence with standard compared to reverse coded items. This latter pattern is exactly what we found. In the Seow & Gillan [@seowGillan2020] dataset, standard items were on average more positively correlated with mean confidence ratings (mean *r* across the `r print_num(SG_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='not_reversed'])` standard items = `r print_num(reversed_SG2020_t.test$estimate[1])`) than were reversed items (mean *r* across the `r print_num(SG_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='reversed'])` reversed items = `r print_num(reversed_SG2020_t.test$estimate[2])`). A t-test comparing the mean of the Pearson correlation coefficients between the two samples was statistically significant (`r  apa_print(reversed_SG2020_t.test)$full_result`; Figure \@ref(fig:mean-rating)B, middle panel), with a large effect size (Cohen's d = `r round(reversed_SG2020_d$Cohens_d, 2)`, 95% CI [`r round(reversed_SG2020_d$CI_low, 2)`, `r round(reversed_SG2020_d$CI_high, 2)`]). A similar pattern was also observed in the Rouault et al. [@rouault2018] dataset, where on average, standard items showed a more positive correlation with mean confidence ratings (mean *r* across the `r print_num(R2018_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='not_reversed'])` standard items = `r print_num(reversed_R2018_t.test$estimate[1])`) than reversed items (mean *r* across the `r print_num(R2018_count_reversed_items_table$n[SG_count_reversed_items_table$is_reversed=='reversed'])` reversed items = `r print_num(reversed_R2018_t.test$estimate[2])`, `r apa_print(reversed_R2018_t.test)$full_result` (Figure \@ref(fig:mean-rating)B, left panel), with a large effect size (Cohen's d = `r round(reversed_R2018_d$Cohens_d, 2)`, 95% CI [`r round(reversed_R2018_d$CI_low, 2)`, `r round(reversed_R2018_d$CI_high, 2)`]). Finally, in the Hoven, Luigjes et al. [@hoven2023howDo] dataset, the same pattern was also found: standard items (mean *r* across the `r print_num(hoven_count_reversed_items_table$n[hoven_count_reversed_items_table$is_reversed=='not_reversed'])` items = `r print_num(reversed_hoven_t.test$estimate[1])`) were on average more positively correlated with confidence than reversed items (mean *r* across the `r print_num(hoven_count_reversed_items_table$n[hoven_count_reversed_items_table$is_reversed=='reversed'])` items = `r print_num(reversed_hoven_t.test$estimate[2])`, `r apa_print(reversed_hoven_t.test)$full_result`; Figure \@ref(fig:mean-rating)B, right panel), with a large effect size (Cohen's *d* = `r round(reversed_hoven_d$Cohens_d, 2)`, 95% CI [`r round(reversed_hoven_d$CI_low, 2)`, `r round(reversed_hoven_d$CI_high, 2)`]). This effect remained significant in all three datasets, when accounting for the main (intercept) effect of questionnaire in a mixed-effect model (Seow & Gillan, 2020: `r apa_print(conf_cor_reversed_SG2020_m)$statistic$is_reversedreversed`; Rouault et al., 2018: `r apa_print(conf_cor_reversed_R2018_m)$statistic$is_reversedreversed`; Hoven, Luigjes, et al., 2023: `r apa_print(conf_cor_reversed_hoven_m)$statistic$is_reversedreversed`; see Appendix).
+
+```{r skewness-confidence, include=FALSE}
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+################## Skewness-confidence correlation ####################
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+#compute correlation between confidence correlation and skewness
+# Rouault correlation 
+Rouault_cor_all_skewness <- cor.test(R2018_items_table$skewness, R2018_items_table$conf_cor, method = 'spearman')
+
+#Seow & Gillan correlation 
+SG_cor_result <- cor.test(SG2020_items_table$skewness, SG2020_items_table$conf_cor,  method = 'spearman')
+
+#Hoven correlation
+hoven_cor_result <- cor.test(hoven_items_table$skewness, hoven_items_table$conf_cor,  method = 'spearman')
+
+eat.2_conf_cor<- cor.test(Rouault2018_df$eat.2, Rouault2018_df$confMean, method = 'pearson')
+#also in the two other datasets
+eat.2_conf_cor_seowGillan<- cor.test(SeowGillan2020_df$eat.2, SeowGillan2020_df$mean_confidence, method = 'pearson')
+eat.2_conf_cor_hoven<- cor.test(hoven_semantic_space$eat.2, hoven_semantic_space$mean_confidence, method = 'pearson')
+
+# create the r and p value label for Rouault et al., 2018 
+Rouault_skewness_conf_cor_label <- ifelse(
+  Rouault_cor_all_skewness$p.value < 0.001,
+  paste0("italic(r) == ", signif(Rouault_cor_all_skewness$estimate, 2), "*','~italic(p) < 0.001"),
+  paste0("italic(r) == ", signif(Rouault_cor_all_skewness$estimate, 2), "*','~italic(p) == ", signif(Rouault_cor_all_skewness$p.value, 3)))
+
+# plot the skewness-confidence correlation
+Rouault2018_skewness_conf <-
+  R2018_items_table %>%
+  mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = skewness, y = conf_cor, label = item, color = is_reversed, shape = questionnaire)) +
+  geom_point(alpha = 0.7, size = 2.5, show.legend = F) +
+  labs(
+    subtitle = "Rouault et al., 2018",
+    x = "Skewness",
+    y = "Item Confidence Correlation",
+    shape = "Questionnaire",
+    color = "Reversed"
+  ) +
+  scale_shape_manual(values = questionnaire_shape_map) +
+  scale_color_manual(values = custom_colors) + 
+  theme_minimal() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50", alpha = 0.7) +
+  geom_smooth(aes(group = 1), method = "lm", se = TRUE, color = "black", show.legend = FALSE) +
+  annotate(
+    "text",
+    x = 2.4,    
+    y = 0.35,   
+    label = Rouault_skewness_conf_cor_label,
+    parse = TRUE,
+    size = 6
+  ) +
+  coord_cartesian(xlim = c(0, 6), ylim = c(-0.2, 0.4)) +
+  geom_text(
+    data = R2018_items_table %>% filter(item == "eat.2"),   
+    aes(label = "EAT.2"), vjust = -1, color = "black", size = 4
+  ) +
+  theme(
+   plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 14),
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 10)
+  ) +
+  theme(aspect.ratio = 1)+
+  guides(color = "none", shape = "none")  # Remove legends
+
+# create the r and p value label for Seow & Gillan, 2020
+SG_skewness_conf_cor_label <- ifelse(
+  SG_cor_result$p.value < 0.001,
+  paste0("italic(r) == ", signif(SG_cor_result$estimate, 2), "*','~italic(p) < 0.001"),
+  paste0("italic(r) == ", signif(SG_cor_result$estimate, 2), "*','~italic(p) == ", signif(SG_cor_result$p.value, 3)))
+
+SeowGillan_skewness_conf <-
+  SG2020_items_table %>%  
+  mutate(item = case_when(
+    item == "zung.2" ~ "SDS.2",
+    TRUE ~ item
+  )) %>%
+  ggplot(aes(x = skewness, y = conf_cor, label = item, color = is_reversed, shape = questionnaire)) +
+  geom_point(alpha = 0.7, size = 2.5, show.legend = FALSE) +
+  labs(
+    subtitle = "Seow & Gillan 2020",
+    x = "Skewness",
+    y = ""
+  ) +  
+  scale_shape_manual(values = questionnaire_shape_map) +
+  scale_color_manual(
+    values = custom_colors,
+    labels = c("Standard", "Reversed")
+  ) + 
+  theme_minimal() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50", alpha = 0.7) +
+  geom_smooth(aes(group = 1), method = "lm", se = TRUE, color = "black", show.legend = FALSE) +
+  annotate(
+    "text",   
+    x = 2.4,
+    y = 0.35,   
+    label = SG_skewness_conf_cor_label,   
+    parse = TRUE,   
+    size = 6
+  ) +
+  coord_cartesian(xlim = c(0, 6), ylim = c(-0.2, 0.4)) +
+  geom_text(
+    data = . %>% filter(item == "SDS.2"), 
+    aes(label = item), vjust = -1, hjust = -0.2, color = "black", size = 4) +
+  theme(
+   plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5),
+   
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 14),
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 10)
+  ) +
+  theme(aspect.ratio = 1)+
+  guides(color = "none", shape = "none")  # Remove legends
+
+# create the r and p value label for Hoven, Luigjes, et al., 2023
+hoven_skewness_conf_cor_label <- ifelse(
+  hoven_cor_result$p.value < 0.001,
+  paste0("italic(r) == ", signif(hoven_cor_result$estimate, 2), "*','~italic(p) < 0.001"),
+  paste0("italic(r) == ", signif(hoven_cor_result$estimate, 2), "*','~italic(p) == ", signif(hoven_cor_result$p.value, 3)))
+
+#hoven figure 
+hoven_skew_conf <- hoven_items_table %>%
+  mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = skewness, y = conf_cor, color = is_reversed , shape = questionnaire)) +
+  #ggrepel::geom_text_repel(aes(label = item), size = 3.5, max.overlaps = Inf, segment.size = 0.3) +
+  geom_point(alpha = 0.7, size=2.5, show.legend = FALSE) +
+  labs(subtitle = "Hoven, Luigjes, et al., 2023",
+       x = "Skewness",
+       y = "",
+       shape = "Questionnaire",
+       color= "Reversed") +  
+  scale_shape_manual(values = questionnaire_shape_map) +
+  scale_color_manual(
+    values = custom_colors,
+    labels = c("Standard", "Reversed")
+  ) + 
+  theme_minimal() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50", alpha = 0.7) +
+  geom_smooth(aes(group = 1), method = "lm", se = TRUE, color = "black", show.legend = FALSE) +
+  annotate(
+    "text",   
+    x = 2.4,
+    y = 0.35,   
+    label = hoven_skewness_conf_cor_label,   
+    parse = TRUE,   
+    size = 6
+  ) +
+  coord_cartesian(xlim = c(0, 6), ylim = c(-0.2, 0.4)) +
+  theme(plot.subtitle = element_text(size = 18, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 14),
+        plot.margin = margin(t = 10, r = 20, b = 10, l = 10),
+        legend.text = element_text(size = 14),
+        legend.title = element_text(size = 16)
+  ) +
+  theme(aspect.ratio = 1)+
+  guides(color = "none", shape = "none")  # Remove legends
+
+# Create complete legend with all questionnaire types and color (reversed items)
+skew_conf_legend_data <- data.frame(
+  questionnaire = rep(factor(names(questionnaire_shape_map), levels = names(questionnaire_shape_map)), 2),
+  is_reversed = rep(c(FALSE, TRUE), each = length(questionnaire_shape_map)),
+  x = rep(1, length(questionnaire_shape_map) * 2),
+  y = rep(1, length(questionnaire_shape_map) * 2)
+)
+
+skew_conf_legend_plot <- ggplot(skew_conf_legend_data, aes(x = x, y = y, shape = questionnaire, color = is_reversed)) +
+  geom_point(size = 3) +
+  scale_shape_manual(
+    values = questionnaire_shape_map,
+    labels = c(
+      "alcohol" = "Alcohol",
+      "social_anxiety" = "Social Anxiety", 
+      "ocd" = "OCD (OCI-R)",
+      "eat" = "EAT",
+      "depression" = "Depression (SDS)",
+      "impulsivity" = "Impulsivity (BIS)",
+      "apathy" = "Apathy",
+      "anxiety" = "STAI-anxiety",
+      "gad_anxiety" = "GAD-anxiety"
+    ),
+    drop = FALSE
+  ) +
+  scale_color_manual(
+    values = custom_colors,
+    labels = c("Standard", "Reversed")
+  ) +
+  theme_void() +
+  theme(legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14),
+        legend.key.size = unit(1.2, "lines"),
+        legend.spacing.y = unit(0.3, "cm")) +
+  guides(
+    shape = guide_legend(title = "Questionnaire", ncol = 1, 
+                         override.aes = list(size = 3),
+                         keywidth = unit(1.2, "lines"),
+                         keyheight = unit(1.2, "lines")),
+    color = guide_legend(title = NULL, ncol = 1,
+                         override.aes = list(size = 3, shape = 16),
+                         keywidth = unit(1.2, "lines"),
+                         keyheight = unit(1.2, "lines"))
+  )
+
+# Extract just the legend
+complete_legend_skew_conf_fig <- cowplot::get_legend(skew_conf_legend_plot)
+
+# bottom panel 
+plot_Rouault_eat_2 <- ggplot(Rouault2018_df, aes(x = factor(eat.2), y = mean_confidence)) +
+  geom_jitter(width = 0.1, height = 0.0, alpha = 0.5, shape=5, color="#1B9E77") +
+  stat_summary(fun = mean,
+               geom = "point",
+               position = position_dodge(0.9),
+               size = 2,
+               alpha=0.5) +  
+  stat_summary(fun.data = mean_se,
+               geom = "errorbar",
+               width = 0.4,
+               position = position_dodge(0.9))+
+  theme_minimal() +
+  scale_x_discrete(labels = c(
+    "(0) Never/Rarely\nSometimes",   
+    "(1) Often",   
+    "(2) Usually",   
+    "(3) Always"))+
+  theme(plot.title = element_text(size = 16, margin = margin(b = 5)),
+        plot.subtitle = element_text(size = 14, margin = margin(b = 10)),
+        axis.text.x = element_text(size = 13),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 16)) +
+  labs(title = "Positive correlation affected by high-rating outliers",
+       subtitle = "Eat item 2: 'I avoid eating when I am hungry'",
+       y = 'Mean confidence (1-6)')
+
+plot_SG_sds2 <-
+  ggplot(SeowGillan2020_df, aes(x = factor(zung.2), y = mean_confidence)) +
+  geom_jitter(width = 0.1, height = 0.0, alpha = 0.5, shape=18, color="#D95F02", size=2.5 ) +
+  stat_summary(fun = mean,
+               geom = "point",
+               position = position_dodge(0.9),
+               size = 2,
+               alpha=0.5) +
+  stat_summary(fun.data = mean_se,
+               geom = "errorbar",
+               width = 0.4,
+               position = position_dodge(0.9))+
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, margin = margin(b = 5)),
+        plot.subtitle = element_text(size = 14, margin = margin(b = 10)),
+        axis.text.x = element_text(size = 13),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 16)) +
+  scale_x_discrete(labels = c("(1) Most of \nthe time", "(2) Good part of\n the time", "(3) Some of \nthe time ", "(4) A little of \nthe time"))+
+  labs(title = "Negative correlation affected by acquiescence (reversed item)",
+       subtitle = "SDS item 2: 'Morning is when I feel the best'",
+       y = 'Mean confidence (1-100)')
+
+skew_conf_top_panel <- Rouault2018_skewness_conf | SeowGillan_skewness_conf | hoven_skew_conf | complete_legend_skew_conf_fig
+skew_conf_bottom_panel <- plot_Rouault_eat_2 | plot_SG_sds2
+
+combined_skewness_conf_fig <-
+  (skew_conf_top_panel / skew_conf_bottom_panel) +
+  plot_layout(heights = c(2, 1.5)) +
+  plot_annotation(
+    tag_levels = list(c("A", "", "", "", "B", ""))
+  ) &
+  theme(
+    plot.tag = element_text(size = 18, face = "bold"),
+    plot.tag.position = c(0, 1.05)
+  )
+
+ggsave(filename = "../figures/skewness_confidence_relationship_three_df.pdf", 
+       combined_skewness_conf_fig, width = 14, height = 10, dpi = 300, device = "pdf")
+
+# individual questionnaires skewness correlation with item confidence correlation 
+R2018_ind_quest_skew_conf<- 
+  R2018_items_table %>%
+  ggplot(aes(x = skewness, y = conf_cor, label = item)) +
+  geom_point(alpha = 0.7, size = 2.5, show.legend = FALSE) +
+  labs(
+    subtitle = "Rouault et al., 2018",
+    x = "Skewness",
+    y = "Item Confidence Correlation",
+    shape = "Questionnaire"
+  ) +
+  scale_color_manual(values = custom_colors) + 
+  theme_minimal() +
+  geom_smooth(aes(group = 1), method = "lm", se = TRUE, color = "black", show.legend = FALSE) +
+  ggpubr::stat_cor(method = 'spearman')+
+  #coord_cartesian(xlim = c(0, 6), ylim = c(-0.2, 0.4)) +
+  theme(
+    plot.subtitle = element_text(size = 20),
+    plot.title = element_text(size = 20),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 14),
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 10)
+  ) +
+    facet_wrap(~questionnaire)
+
+ggsave(filename = "../figures/R2018_ind_quest_skew_conf.png", R2018_ind_quest_skew_conf, width = 14, height = 10, dpi = 300)
+  
+SG2020_ind_quest_skew_conf <- 
+  SG2020_items_table %>%
+    ggplot(aes(x = skewness, y = conf_cor)) +
+    geom_point(alpha = 0.7, size = 2.5, show.legend = FALSE) +
+    labs(
+      subtitle = "Seow & Gillan, 2020",
+      x = "Skewness",
+      y = "Item Confidence Correlation",
+      shape = "Questionnaire"
+    ) +
+    scale_color_manual(values = custom_colors) + 
+    theme_minimal() +
+    geom_smooth(aes(group = 1), method = "lm", se = TRUE, color = "black", show.legend = FALSE) +
+    ggpubr::stat_cor(method = 'spearman')+
+    #coord_cartesian(xlim = c(0, 6), ylim = c(-0.2, 0.4)) +
+    theme(
+      plot.subtitle = element_text(size = 20),
+      plot.title = element_text(size = 20),
+      axis.title = element_text(size = 18),
+      axis.text = element_text(size = 14),
+      plot.margin = margin(t = 10, r = 20, b = 10, l = 10)
+    ) +
+    facet_wrap(~questionnaire)
+  
+ggsave(filename = "../figures/SG2020_ind_quest_skew_conf.png", SG2020_ind_quest_skew_conf, width = 14, height = 10, dpi = 300)
+
+hoven_ind_quest_skew_conf <-
+   hoven_items_table %>%
+    ggplot(aes(x = skewness, y = conf_cor)) +
+    geom_point(alpha = 0.7, size = 2.5, show.legend = FALSE) +
+    labs(
+      subtitle = "Hoven, Luigjes, et al., 2023",
+      x = "Skewness",
+      y = "Item Confidence Correlation",
+      shape = "Questionnaire"
+    ) +
+    scale_color_manual(values = custom_colors) + 
+    theme_minimal() +
+    geom_smooth(aes(group = 1), method = "lm", se = TRUE, color = "black", show.legend = FALSE) +
+    ggpubr::stat_cor(method = 'spearman')+
+    #coord_cartesian(xlim = c(0, 6), ylim = c(-0.2, 0.4)) +
+    theme(
+      plot.subtitle = element_text(size = 20),
+      plot.title = element_text(size = 20),
+      axis.title = element_text(size = 18),
+      axis.text = element_text(size = 14),
+      plot.margin = margin(t = 10, r = 20, b = 10, l = 10)
+    ) +
+    facet_wrap(~questionnaire)
+
+ggsave(filename = "../figures/hoven_ind_quest_skew_conf.png", hoven_ind_quest_skew_conf, width = 14, height = 10, dpi = 300)
+
+# ==========================================================
+# LMM with random intercept for questionnaire 
+# ==========================================================
+
+# Hoven et al., 2023 dataset — random slope + intercept by questionnaire
+# ==========================================================
+
+hoven_skew_conf_lmm <- hoven_items_table %>%
+  lmerTest::lmer(conf_cor ~ skewness + (1 + skewness | questionnaire), data = .)
+
+
+# random intercept model 
+hoven_skew_conf_lmm_intercept_only <- hoven_items_table %>%
+  lmerTest::lmer(conf_cor ~ skewness + (1 | questionnaire), data = .)
+
+#summary(hoven_skew_conf_lmm_intercept_only)
+
+# Rouault et al. (2018) — random slope + intercept by questionnaire
+# ==========================================================
+
+rouault_skew_conf_lmm <- lmerTest::lmer(
+  conf_cor ~ skewness + (1 + skewness | questionnaire),
+  data = R2018_items_table
+)
+
+# Seow & Gillan (2020) — random slope + intercept by questionnaire
+# ==========================================================
+
+sg_skew_conf_lmm <- lmerTest::lmer(
+  conf_cor ~ skewness + (1 + skewness | questionnaire),
+  data = SG2020_items_table
+)
+
+
+```
+
+### Analysis 2: Testing the effect of inattentive responding with item-level skewness
+
+The semi-random responses of inattentive responders make them symptomatic on items that are rarely endorsed by attentive responders, that is, on items with a right-skewed response distribution. As a result, a participant who endorses a right-skewed item is more likely to be inattentive than a participant who does not [@chandler2020]. For example, consider an item that describes a rare symptom that is experienced by only 10% of the population. If rated on a five-point scale (ranging from 0 = "Almost never" to 4 = "Almost always"), it will receive non-zero ratings from only 10% of attentive participants, but from 80% of inattentive participants who sample their responses uniformly, irrespective of content. Therefore, participants who provide non-zero ratings will be more likely to be inattentive responders than participants who provide zero ratings (see Figure \@ref(fig:model)B, middle panel).
+
+Given that inattentive participants were previously found to be biased towards using the positive ("agree") half of a survey rating scale [@zorowitz2023], we reasoned that inattentive responders may rate their confidence as higher on average, which can produce spurious positive correlation between the endorsement of rare (right skewed) psychiatric symptoms and decision confidence. Supporting this, we found a positive correlation between item skewness and its correlation with confidence in all three datasets (Seow & Gillan [@seowGillan2020]: `r apa_print(SG_cor_result)$full_result`; Rouault et al. [@rouault2018]: `r apa_print(Rouault_cor_all_skewness)$full_result`; Hoven, Luigjes, et al. [@hoven2023howDo]: `r apa_print(hoven_cor_result)$full_result`; Figure \@ref(fig:skewness-confidence-fig), top panels), such that as items are more right-skewed---that is, less frequently endorsed---the correlation between item endorsement and mean confidence increases. The positive relationship between skewness and item-confidence correlations was found in all three datasets using models that allowed the strength of the relationship to vary across questionnaires (random slope): Seow & Gillan [@seowGillan2020] (`r apa_print(sg_skew_conf_lmm)$full_result$skewness`), Rouault et al. [@rouault2018] (`r apa_print(rouault_skew_conf_lmm)$full_result$skewness`), and Hoven, Luigjes, et al. [@hoven2023howDo] (`r apa_print(hoven_skew_conf_lmm)$full_result$skewness`), indicating that the association is not attributable solely to between-questionnaire differences and is, on average, observed within questionnaires (see Appendix). This finding also elucidates a curious pattern which can be observed in Figure \@ref(fig:mean-rating): in all three datasets, the positive correlation between mean item rating and mean confidence was mostly driven by a subset of participants with high (above 0.5) mean item ratings, who also gave high confidence ratings. As a result, the correlation was much stronger in the dataset that featured more such subjects (Seow & Gillan @seowGillan2020). We suggest that this qualitatively distinct group of subjects may be inattentive responders, and that they may contribute to the observed effect of acquiescence on item-confidence correlations. 
+
+To elucidate the relationship between item skewness and item-confidence correlations, consider item 2 from the Eating Attitudes Test (EAT-2): "I avoid eating when I am hungry;" Figure \@ref(fig:skewness-confidence-fig), bottom left). Endorsement of this item in Rouault et al. [@rouault2018] is significantly correlated with mean confidence (`r apa_print(eat.2_conf_cor)$statistic`), but visual inspection suggests that this correlation is largely driven by a small minority of participants who reported "usually" or "always" and also had a high mean confidence rating. This pattern is more suggestive of a spurious correlation due to inattentive responding, participants reporting high agreement with items without paying attention to their content, than of a substantive psychological relationship between self-starvation and confidence.
+
+```{r skewness-confidence-fig, echo=FALSE, fig.cap="Correlation Between Item-Level Skewness and Item Confidence Correlation. (A): each point represents an item from the self-report questionnaires, with the shapes indicating different questionnaires. Standard and reversed items are color-coded. The x-axis represents the skewness score of each item. The y-axis represents the Pearson correlation coefficient between the item’s rating and mean confidence, across individuals. The black line represents a linear regression fit, and the shaded gray area represents the standard error of the fit. The dashed horizontal line at y=0 marks zero correlation. (B): mean confidence ratings by questionnaire item responses. Left: EAT item 2, 'I avoid eating when I am hungry,' from Rouault et al. (2018), showing a positive correlation affected by high-rating outliers in the 'Usually' and 'Always' response category. Right: SDS item 2, 'Morning is when I feel the best,' from Seow & Gillan (2020), demonstrating a negative correlation influenced by acquiescence to reversed items. Error bars represent standard errors of the mean. For visualization purposes only, the x-axis was set to the range 0-6, thereby not showing two extreme outliers. See supplementary materials for a figure including these two items."}
+knitr::include_graphics("../figures/skewness_confidence_relationship_three_df.png")
+```
+
+```{r item_weights_analysis, include=FALSE}
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#add the items weights into the items_table 
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+R2018_items_table <- R2018_items_table %>% left_join(., Gillan_2016_item_weights, by='item')
+SG2020_items_table <- SG2020_items_table %>% left_join(., Gillan_2016_item_weights, by='item')
+hoven_items_table_no_anx <- hoven_items_table %>% 
+  filter(questionnaire != 'gad_anxiety') %>% # remove the anxiety questionnaire 
+  left_join(., Gillan_2016_item_weights, by='item')
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# plot weights with item-skewness
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+scale_color_manual_values <- scale_color_manual(
+  values = custom_colors,
+  labels = c("Standard", "Reversed"),
+  guide = guide_legend(title = NULL, override.aes = list(size = 6))
+)
+
+#significance testing 
+R2018_item_weight_skewness_cor<- 
+cor.test(R2018_items_table$skewness, R2018_items_table$CIT, method = 'spearman')
+
+SG2020_item_weight_skewness_cor<- 
+cor.test(SG2020_items_table$skewness, SG2020_items_table$CIT, method='spearman')
+
+H2023_item_weight_skewness_cor_CIT<-
+cor.test(hoven_items_table_no_anx$skewness, hoven_items_table_no_anx$CIT, method = 'spearman')
+  
+CIT_AD_cor <- cor.test(Gillan_2016_item_weights$AD, Gillan_2016_item_weights$CIT, method = 'pearson')
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ==============================================================================
+# Analysis of inattention effects in Katyal et al. (2024) Experiment 2
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#load data
+katyal_item_level_data <- read.csv("../data/Katyal_item_level_data.csv")
+
+# Define questionnaire prefixes and reversed items ---------------------------
+questionnaire_prefixes <- c("SDS", "LSAS", "STAI", "OCI", "BIS", "AUDIT", "EAT", "AES")
+# Define reversed items from from Hopkins et al. (2022) 
+katyal_reversed_items <- c(
+  "SDS_11", "SDS_12", "SDS_14", "SDS_16", "SDS_17", "SDS_18", "SDS_20",
+  "STAI_1", "STAI_3", "STAI_4", "STAI_5", "STAI_7", "STAI_10", 
+  "STAI_13", "STAI_16", "STAI_19",
+  "BIS_9", "BIS_13", "BIS_20",
+  "AES_1", "AES_2", "AES_7", "AES_8", "AES_16", "AES_17", "AES_18"
+)
+
+# Compute skewness and confidence correlations ---------------------------------
+compute_item_statistics <- function(questionnaire_prefix, data, conf_column) {
+  pattern <- paste0("^", questionnaire_prefix, "(_|\\.)\\d+$")
+  item_columns <- grep(pattern, names(data), value = TRUE)
+  
+  map_dfr(item_columns, function(col) {
+    item_values <- data[[col]]
+    tibble(
+      questionnaire = questionnaire_prefix,
+      item = col,
+      skewness = moments::skewness(item_values, na.rm = TRUE),
+      conf_correlation = cor(item_values, data[[conf_column]], 
+                             use = "complete.obs", method = "pearson")
+    )
+  })
+}
+
+katyal_item_statistics <- map_dfr(
+  questionnaire_prefixes, 
+  compute_item_statistics, 
+  data = katyal_item_level_data, 
+  conf_column = "mean_conf"
+) %>%
+  mutate(
+    reversed = item %in% katyal_reversed_items,
+    questionnaire = factor(questionnaire)
+  )
+
+# Compute inattention sensitivity ----------------------------------------------
+katyal_item_level_data$attention_fail <- relevel(factor(katyal_item_level_data$attention_fail),
+                                          ref = "inattentive")
+
+compute_inattention_effect <- function(data, prefixes, attention_column) {
+  pattern <- paste0("^(", paste(prefixes, collapse = "|"), ")_\\d+$")
+  item_columns <- grep(pattern, names(data), value = TRUE)
+  
+  map_dfr(item_columns, function(col) {
+    effect <- effectsize::cohens_d(
+      data[[col]] ~ data[[attention_column]],
+      pooled_sd = TRUE,
+      hedges.correction = FALSE,
+      ci = 0.95
+    )
+    
+    tibble(
+      item = col,
+      inattention_d = effect$Cohens_d,
+      ci_low = effect$CI_low,
+      ci_high = effect$CI_high
+    )
+  }) %>%
+    arrange(desc(inattention_d))
+}
+
+katyal_inattention_effects <- compute_inattention_effect(
+  katyal_item_level_data, 
+  questionnaire_prefixes, 
+  attention_column = "attention_fail")
+
+# Combine all item-level metrics -----------------------------------------------
+# match katyal names to other dfs 
+katyal_item_analysis <- katyal_item_statistics %>%
+  left_join(katyal_inattention_effects, by = "item")
+
+# Standardize item names to match Gillan et al., 2016 format
+katyal_item_analysis <- katyal_item_analysis %>%
+  mutate(
+    prefix = str_extract(item, "^[^_]+"),
+    number = str_extract(item, "(?<=_)\\d+"),
+    prefix = recode(prefix,
+                    "OCI"   = "ocir",
+                    "EAT"   = "eat",
+                    "AES"   = "apathy",
+                    "AUDIT" = "alcohol",
+                    "SDS"   = "zung",
+                    "STAI"  = "anxiety",
+                    "BIS"   = "bis",
+                    "LSAS"  = "leb"
+    ),
+    item = paste0(prefix, ".", number)
+  ) %>%
+  select(-prefix, -number)
+
+
+# Join with Gillan et al., 2016 item weights
+katyal_item_analysis <- katyal_item_analysis %>%
+  left_join(Gillan_2016_item_weights, by = "item")
+
+# Visualizations ---------------------------------------------------------------
+# Define plot aesthetics matching previous plot 
+questionnaire_shapes <- c(
+  "LSAS" = 1, "OCI" = 11, "EAT" = 5, "SDS" = 18,
+  "BIS" = 20, "AES" = 15, "STAI" = 17)
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Figure transdiagnostic weights and skewness-------- 
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Define shared theme for all plots
+shared_theme <- theme(
+  plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+  axis.title = element_text(size = 18),
+  axis.text = element_text(size = 14),
+  plot.margin = margin(t = 10, r = 20, b = 10, l = 10),
+  legend.text = element_text(size = 14),
+  legend.title = element_text(size = 16),
+  aspect.ratio = 1)
+
+# Define consistent shape mapping for questionnaires
+questionnaire_shape_map <- c(
+  "alcohol" = 0,
+  "social_anxiety" = 1,   
+  "ocd" = 11,              
+  "eat" = 5,
+  "depression" = 18,        
+  "impulsivity" = 20,    
+  "apathy" = 15,
+  "anxiety" = 17,
+  "gad_anxiety" = 2)
+
+# Define reversed colors
+reversed_colors <- c("#1B9E77", "#D95F02")
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Rouault et al., 2018 Figures
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+R2018_CIT_main_fig <- 
+  R2018_items_table %>%
+  mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = skewness, y = CIT, shape = questionnaire, color = is_reversed)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(alpha = 0.7, size = 4) +
+  scale_shape_manual(values = questionnaire_shape_map, name = "Questionnaire") +
+  scale_color_manual(values = reversed_colors, labels = c("Standard", "Reversed"), name = "") +
+  theme_minimal() +
+  labs(x = 'Item-skewness', y = 'Item-weight', title = 'Rouault et al., 2018: CIT') +
+  coord_cartesian(xlim = c(0, 6), ylim = c(-0.03, 0.07)) +
+  shared_theme +
+  theme(
+    legend.position = "none",
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 10)
+  )
+
+R2018_AD_main_fig <- 
+  R2018_items_table %>%
+  mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = skewness, y = AD, shape = questionnaire, color = is_reversed)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(alpha = 0.7, size = 4) +
+  scale_shape_manual(values = questionnaire_shape_map, name = "Questionnaire") +
+  scale_color_manual(values = reversed_colors, labels = c("Standard", "Reversed"), name = "") +
+  theme_minimal() +
+  labs(x = 'Item-skewness', y = 'Item-weight', title = 'Rouault et al., 2018: AD') +
+  coord_cartesian(xlim = c(0, 6), ylim = c(-0.03, 0.07)) +
+  shared_theme +
+  theme(
+    legend.position = "none",
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 10)
+  )
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Seow & Gillan, 2020 Figures
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SG_CIT_main_fig <- 
+  SG2020_items_table %>%
+  mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = skewness, y = CIT, shape = questionnaire, color = is_reversed)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(alpha = 0.7, size = 4) +
+  scale_shape_manual(values = questionnaire_shape_map, name = "Questionnaire") +
+  scale_color_manual(values = reversed_colors, labels = c("Standard", "Reversed"), name = "") +
+  theme_minimal() +
+  coord_cartesian(xlim = c(0, 6), ylim = c(-0.03, 0.07)) +
+  labs(x = 'Item-skewness', title = 'Seow & Gillan, 2020: CIT') +
+  shared_theme +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    plot.margin = margin(t = 10, r = 0, b = 10, l = 10)
+  )
+
+SG_AD_main_fig <- 
+  SG2020_items_table %>%
+  mutate(questionnaire = factor(questionnaire, levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = skewness, y = AD, shape = questionnaire, color = is_reversed)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(alpha = 0.7, size = 4) +
+  scale_shape_manual(values = questionnaire_shape_map, name = "Questionnaire") +
+  scale_color_manual(values = reversed_colors, labels = c("Standard", "Reversed"), name = "") +
+  theme_minimal() +
+  labs(x = 'Item-skewness', title = 'Seow & Gillan, 2020: AD') +
+  coord_cartesian(xlim = c(0, 6), ylim = c(-0.03, 0.07)) +
+  shared_theme +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    plot.margin = margin(t = 10, r = 0, b = 10, l = 10)
+  )
+
+SG_CIT_mean_fig <- 
+  SG2020_items_table %>%
+  ggplot(aes(x = 1, y = CIT, color = is_reversed)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.3, size = 1.2, show.legend = FALSE) +
+  stat_summary(fun = mean, geom = "point", size = 6, shape = 18, show.legend = FALSE) +
+  scale_color_manual(values = reversed_colors, labels = c("Standard", "Reversed"), name = "") +
+  theme_minimal() +
+  coord_cartesian(ylim = c(-0.03, 0.07)) +
+  labs(title = "Mean\nweight") +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 0),
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank()
+  )
+
+SG_AD_mean_fig <- 
+  SG2020_items_table %>%
+  ggplot(aes(x = 1, y = AD, color = is_reversed)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.3, size = 1.2, show.legend = FALSE) +
+  stat_summary(fun = mean, geom = "point", size = 6, shape = 18, show.legend = FALSE) +
+  scale_color_manual(values = reversed_colors, labels = c("Standard", "Reversed"), name = "") +
+  theme_minimal() +
+  coord_cartesian(ylim = c(-0.03, 0.07)) +
+  theme(
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 0),
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    plot.title = element_blank()
+  )
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Katyal et al., 2025 Figures
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Map Katyal questionnaire names to shape map
+katyal_questionnaire_map <- c(
+  "AUDIT" = "alcohol",
+  "LSAS" = "social_anxiety",
+  "OCI" = "ocd",
+  "EAT" = "eat",
+  "SDS" = "depression",
+  "BIS" = "impulsivity",
+  "AES" = "apathy",
+  "STAI" = "anxiety")
+### compute correlations --------------------------------------------------------
+katyal_inattention_CIT_cor <- 
+  cor.test(katyal_item_analysis$inattention_d,
+           katyal_item_analysis$CIT,
+           method = "spearman")
+
+katyal_inattention_AD_cor <- 
+  cor.test(katyal_item_analysis$inattention_d,
+           katyal_item_analysis$AD,
+           method = "spearman")
+
+katyal_inattention_skewness_cor <- 
+  cor.test(katyal_item_analysis$inattention_d,
+           katyal_item_analysis$skewness,
+           method = "spearman")
+### create p-value labels-----------------------------------------------
+katyal_inattention_CIT_label <- ifelse(
+  katyal_inattention_CIT_cor$p.value < 0.001,
+  paste0("italic(r) == ", signif(katyal_inattention_CIT_cor$estimate, 2),
+         "*','~italic(p) < 0.001"),
+  paste0("italic(r) == ", signif(katyal_inattention_CIT_cor$estimate, 2),
+         "*','~italic(p) == ", signif(katyal_inattention_CIT_cor$p.value, 3)))
+
+katyal_inattention_AD_label <- ifelse(
+  katyal_inattention_AD_cor$p.value < 0.001,
+  paste0("italic(r) == ", signif(katyal_inattention_AD_cor$estimate, 2),
+         "*','~italic(p) < 0.001"),
+  paste0("italic(r) == ", signif(katyal_inattention_AD_cor$estimate, 2),
+         "*','~italic(p) == ", signif(katyal_inattention_AD_cor$p.value, 3)))
+
+katyal_inattention_skewness_label <- ifelse(
+  katyal_inattention_skewness_cor$p.value < 0.001,
+  paste0("italic(r) == ", signif(katyal_inattention_skewness_cor$estimate, 2),
+         "*','~italic(p) < 0.001"),
+  paste0("italic(r) == ", signif(katyal_inattention_skewness_cor$estimate, 2),
+         "*','~italic(p) == ", signif(katyal_inattention_skewness_cor$p.value, 3)))
+
+#$$ PLOTS $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+### CIT plot -------------------------------------------------------------------
+CIT_katyal_inattention_weights <- 
+  katyal_item_analysis %>%
+  mutate(
+    questionnaire_mapped = recode(questionnaire,
+                                  "AUDIT" = "alcohol", "LSAS" = "social_anxiety", "OCI" = "ocd",
+                                  "EAT" = "eat", "SDS" = "depression", "BIS" = "impulsivity",
+                                  "AES" = "apathy", "STAI" = "anxiety"),
+    questionnaire_mapped = factor(questionnaire_mapped,
+                                  levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = inattention_d, y = CIT,
+             shape = questionnaire_mapped, color = reversed)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(alpha = 0.7, size = 4) +
+  geom_smooth(aes(group = 1), method = "lm", se = TRUE, color = "black") +
+  coord_cartesian(ylim = c(-0.03, 0.07)) +
+  annotate(
+    "text",
+    x = -0.15,
+    y = 0.065,
+    label = katyal_inattention_CIT_label,
+    parse = TRUE, size = 6) +
+  scale_shape_manual(values = questionnaire_shape_map, guide = "none") +
+  scale_color_manual(values = reversed_colors, guide = "none") +
+  labs(x = "Inattention Sensitivity (Cohen's d)",
+       y = "Item-weight",
+       title = "Katyal et al., 2025: CIT") +
+  theme_minimal() + shared_theme +
+  theme(legend.position = "none")
+
+### AD plot --------------------------------------------------------------------
+AD_katyal_inattention_weights <- 
+  katyal_item_analysis %>%
+  mutate(
+    questionnaire_mapped = recode(questionnaire,
+                                  "AUDIT" = "alcohol", "LSAS" = "social_anxiety", "OCI" = "ocd",
+                                  "EAT" = "eat", "SDS" = "depression", "BIS" = "impulsivity",
+                                  "AES" = "apathy", "STAI" = "anxiety"),
+    questionnaire_mapped = factor(questionnaire_mapped,
+                                  levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = inattention_d, y = AD,
+             shape = questionnaire_mapped, color = reversed)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(alpha = 0.7, size = 4) +
+  geom_smooth(aes(group = 1), method = "lm", se = TRUE, color = "black") +
+  coord_cartesian(ylim = c(-0.03, 0.07)) +
+  annotate(
+    "text",
+    x = -0.15,
+    y = 0.065,
+    label = katyal_inattention_AD_label,
+    parse = TRUE, size = 6) +
+  scale_shape_manual(values = questionnaire_shape_map, guide = "none") +
+  scale_color_manual(values = reversed_colors, guide = "none") +
+  labs(x = "Inattention Sensitivity (Cohen's d)",
+       y = "Item-weight",
+       title = "Katyal et al., 2025: AD") +
+  theme_minimal() + shared_theme +
+  theme(legend.position = "none")
+
+### Skewness plot --------------------------------------------------------------
+katyal_inattention_skewness <- 
+  katyal_item_analysis %>%
+  mutate(
+    questionnaire_mapped = recode(questionnaire,
+                                  "AUDIT" = "alcohol", "LSAS" = "social_anxiety", "OCI" = "ocd",
+                                  "EAT" = "eat", "SDS" = "depression", "BIS" = "impulsivity",
+                                  "AES" = "apathy", "STAI" = "anxiety"),
+    questionnaire_mapped = factor(questionnaire_mapped,
+                                  levels = names(questionnaire_shape_map))) %>%
+  ggplot(aes(x = inattention_d, y = skewness,
+             shape = questionnaire_mapped, color = reversed)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(alpha = 0.7, size = 4) +
+  geom_smooth(aes(group = 1), method = "lm", se = TRUE, color = "black") +
+  annotate(
+    "text",
+    x = -0.15,
+    y = max(katyal_item_analysis$skewness, na.rm = TRUE) *0.915,
+    label = katyal_inattention_skewness_label,
+    parse = TRUE, size = 6) +
+  scale_shape_manual(values = questionnaire_shape_map, guide = "none") +
+  scale_color_manual(values = reversed_colors, guide = "none") +
+  labs(x = "Inattention Sensitivity (Cohen's d)",
+       y = "Item-skewness",
+       title = "Katyal et al., 2025") +
+  theme_minimal() + shared_theme +
+  theme(legend.position = "none")
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Combine All Figures
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Combine all plots in a 3x3 grid
+dimensions_inatten_sens <- wrap_plots(
+  R2018_CIT_main_fig, SG_CIT_main_fig, SG_CIT_mean_fig,
+  R2018_AD_main_fig, SG_AD_main_fig, SG_AD_mean_fig,
+  CIT_katyal_inattention_weights, AD_katyal_inattention_weights, plot_spacer(),
+  ncol = 3, nrow = 3,
+  widths = c(1, 1, 0.2),
+  heights = c(1, 1, 1)) + 
+  plot_layout(guides = "collect") +
+  plot_annotation(tag_levels = list(c('A', '', '', '', '', '', 'B', '', ''))) &
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    plot.tag = element_text(size = 20, face = "bold"))
+
+# Final plot is assembled graphically outside of R. 
+# Save figure
+#ggsave(filename = "../figures/dimensions_inatten_AD.png", dimensions_inatten_sens, width = 12, height = 14, dpi=600)
+```
+
+### Analysis 3: Associations between transdiagnostic dimensional weights with skewness and coding direction
+
+As discussed in the introduction, the CIT (compulsive behavior and intrusive thought) dimension has been associated with higher mean confidence, whereas the AD (anxious-depression) dimension has been linked to lower mean confidence [@hoven2023howDo; @rouault2018; @seowGillan2020]. One possibility is that these associations reflect true relationships between metacognition and psychopathology. An alternative explanation for these associations is that both psychiatric dimensions and reported confidence are subject to similar response biases, simultaneously influencing their observed relationships. To examine this possibility, we tested the contribution of acquiescence and inattentive responding to the transdiagnostic factor structure itself, irrespective of confidence ratings. To that end, we obtained the factor weights of individual items as originally reported by Gillan et al. [@gillanGoalDirected2016] as both Rouault et al. [@rouault2018] and Seow & Gillan [@seowGillan2020] relied on these weights in their analysis, and since these factors were computed based on a large sample (N=1413) [^1]. In Figure \@ref(fig:skewness-dimensions), we plotted these item weights against the item skewness with visual coding for reversed items (color-coded in orange), for the CIT and AD dimensions in both datasets.
+
+[^1]: As Hoven, Luigjes, et al. [@hoven2023howDo] used a questionnaire set that did not match the original set of Gillan et al. [@gillanGoalDirected2016] (included the GAD-7 instead of the STAI to measure anxiety) we report its analysis separately in the Appendix. 
+
+Two prominent trends emerge from these plots. First, in the CIT dimension (Figure \@ref(fig:skewness-dimensions), left row) there is a positive correlation between item weight and its skewness, such that more skewed items contribute more to the CIT factor. This association was large and significant in both datasets: in Seow and Gillan [@seowGillan2020] (`r apa_print(SG2020_item_weight_skewness_cor)$full_result`), and in Rouault et al. [@rouault2018] (`r apa_print(R2018_item_weight_skewness_cor)$full_result`). This finding is consistent with the conjecture that the positive correlation between the CIT dimension and confidence is driven, at least in part, by high confidence ratings among inattentive responders -- as items become more skewed, the proportion of inattentive participants is expected to exceed that of truly attentive, symptomatic participants [Figure \@ref(fig:model)B, Rare Symptom; see also @chandler2020].In the appendix we show that these results hold when controlling for the random effect of questionnaire. We also present the results of a simulation which demonstrates that a positive correlation between item skewness and factor weights is unexpected under reasonable assumptions about the link between skewness and diagnostic content.
+
+A second clear trend in Figure \@ref(fig:skewness-dimensions) is that in the CIT factor, standard items (green markers) and reversed items (orange markers) have average weights with opposite signs, whereas in the AD factor, standard item weights are near zero on average, while the average weight for reversed items is positive. When calculating total scores in psychiatric questionnaires, reversed items (such as "I feel that I am useful and needed" in a depression scale) are coded such that low endorsement results in a higher symptom score. Crucially, the CIT and AD dimensions effectively *undo this semantic reversal*. As a result, their factor scores likely reflect acquiescence bias: a general tendency to agree or disagree. Specifically, on average, the CIT dimension is correlated with a tendency to agree, and the AD dimension with a tendency to disagree. This mirrored pattern is not surprising given the high negative correlation between the weights of these two factors across items (`r apa_print(CIT_AD_cor)$full_result`).
+
+```{r skewness-dimensions, echo=FALSE, fig.cap="The Effect of Reversed Items and Skewness on the CIT and AD Dimensions. Each point represents a questionnaire item, with point shapes indicating the questionnaire. Standard and reversed items are color-coded. The dashed horizontal line at y=0 serves as a reference for zero item weight. Item weights were taken from Gillan et al. (2016). The higher the item’s weight, the larger its contribution to the factor. Note that item weights are assigned to reversed items after reversal. (A) Top row: CIT - compulsive behavior and intrusive thought. Bottom row: AD - anxious-depression. Left column: Rouault et al. (2018). Right column: Seow and Gillan (2020). Diamond symbols in the rightmost column display the mean ± standard error of the mean (SEM) for item weights, with separate values shown for standard (green) and reversed (orange) items. For visualization purposes only, the x-axis was set to the range 0-6, thereby not showing two extreme outliers. See supplementary materials for a figure including these two items. (B) Item sensitivity to inattention is correlated with both CIT/AD item weights and item-level skewness in Katyal et al. (2025). In all three panels, the x-axis shows each item’s sensitivity to inattentive responding (Cohen’s d, comparing inattentive vs. attentive participants). Left panel: the y-axis shows the CIT item-weight. Middle panel: the y-axis shows the AD item-weight. Right panel: the y-axis shows item-level skewness. The solid black line represents the linear regression fit, and the shaded region reflects the standard error of the fit. The reported correlation is the Spearman correlation coefficient."}
+knitr::include_graphics("../figures/dimensions_inatten_sens.png")
+```
+
+### Analysis 4: Examining the relation between skewness and inattention sensitivity
+
+In Analyses 2 and 3, we used item-level skewness to estimate the potential impact of inattentive responding. This choice was grounded in the empirical observation that highly skewed items are more affected by inattention [@chandler2020; @zorowitz2023]. However, skewness also reflects the underlying prevalence of symptoms, such that the distribution of rarer symptoms (e.g., compulsivity) tend to be more skewed than the distribution of common symptoms (e.g., anxiety and depression). It is therefore important to determine the extent to which skewness tracks inattention rather than symptom prevalence. To address this, we analyzed a fourth dataset Katyal et al. @katyal2025, which includes a reliable inattention index derived from infrequency items [a gold-standard approach for detecting inattentive responding, @huang2015]. This enabled us to compute an inattention-sensitivity index for each psychiatric questionnaire item by comparing endorsement rates between inattentive and attentive respondents (expressed as Cohen's d). If skewness is a sensitive index of inattention, items with higher skewness should show larger inattentive--attentive differences. This is exactly what we found: inattention sensitivity was strongly associated with item-level skewness `r apa_print(katyal_inattention_skewness_cor)$full_result` (Figure 6, B, right panel). We also tested the correlation between CIT and AD factor weights and inattention sensitivity, and found the same patterns obtained for skewness: inattention sensitivity positively correlated with CIT weights (`r apa_print(katyal_inattention_CIT_cor)$full_result`; Figure 6, B, left panel), and a negatively correlated with AD weights (`r apa_print(katyal_inattention_AD_cor)$full_result`; Figure 6, B, middle panel). In other words, items that received higher ratings from inattentive participants loaded high on CIT and low on AD, and the opposite was true for items that received lower ratings from inattentive participants. This validates our use of skewness as a sensitive proxy for inattention, and reaffirms that the factor structure strongly aligns with inattentive responding.
+
+So far, we relied on post hoc measures: item skewness and coding direction (standard vs. reversed), to assess the impact of inattentiveness and acquiescence on confidence ratings. In the next section, we measure inattentive responding and acquiescence directly, to detect these biases and empirically test their influence on confidence ratings.
+
+```{r online_experiment, warning=FALSE, include=FALSE}
+# Task data
+raw_df <- read.csv("../data/raw_df_cleaned.csv", stringsAsFactors = FALSE) %>%
+  mutate(subj_id = as.character(subj_id))
+
+# Qualtrics data
+qualtrics_df_raw <- read.csv("../data/qualtrics_df_cleaned.csv", stringsAsFactors = FALSE) %>%
+  mutate(subj_id = as.character(subj_id))
+
+# Prolific demographic data
+demographic_df <- read.csv("../data/demographic_df_cleaned.csv", stringsAsFactors = FALSE) %>%
+  mutate(subj_id = as.character(subj_id))
+
+# tidy task data
+tidy_df <- raw_df %>% filter(trial_type=='countDots') %>% select(subj_id, trial_index, block, RT, correct, confidence, confidence_RT, increment, right_array, left_array, response)
+
+# total n before exclusion
+total_n <-tidy_df %>% 
+  select(subj_id) %>% 
+  distinct() %>% 
+  nrow()
+
+# subj id vector from task data
+subj_ids <- tidy_df %>%
+  select(subj_id) %>%
+  distinct() %>%
+  dplyr::pull(subj_id)
+
+# id from prolific data
+subj_id_from_prolific <- demographic_df %>%
+  select(subj_id) %>%
+  distinct() %>%
+  dplyr::pull(subj_id)
+
+# mean accuracy 
+acc_df <- 
+  tidy_df %>% 
+  filter(block != 'practice_with_feedback' & block != 'practice_without_feedback') %>% 
+  group_by(subj_id) %>% 
+  mutate(accuracy = ifelse(correct=='true', 1,0)) %>% 
+  summarise(mean_acc = mean(as.numeric(accuracy)))
+
+# exclusion based on accuracy
+excluded_for_accuracy <- acc_df %>% filter(mean_acc<0.6) %>% dplyr::pull(subj_id)
+excluded <- c(excluded_for_accuracy)  
+
+# apply exclusion
+tidy_df <- tidy_df %>% filter(!(subj_id %in% excluded))
+
+# n after exclusion 
+total_n_after_exclusion <-tidy_df %>% 
+  select(subj_id) %>% 
+  distinct() %>% 
+  nrow()
+
+# construct mean confidence per participant df 
+mean_conf_df <- tidy_df %>% 
+  filter(block != 'practice_with_feedback' & block != 'practice_without_feedback') %>% 
+  group_by(subj_id) %>% 
+  summarise(mean_conf = mean(as.numeric(confidence)))
+
+# qualtrics data proceesing -------------------------------------------------------
+qualtrics_df <- qualtrics_df_raw %>% filter(subj_id != 'test')
+
+# Item names and instructions 
+item_instructions <- data.frame(
+  item_content = sub(".* - ", "", as.character(qualtrics_df_raw[1, ])), # Extract the first row as content descriptions and clean the content descriptions by removing the instruction part
+  item_name = colnames(qualtrics_df_raw)
+) %>%
+  filter(str_detect(item_name, "OCI.R_") | 
+           str_detect(item_name, "zung_") | 
+           str_detect(item_name, "neutral_")) %>%
+  filter(!str_detect(item_name, "Click")) %>%
+  filter(!str_detect(item_name, "DO")) %>%
+  filter(!str_detect(item_name, "Page.Submit"))
+
+# Long qualtrics df
+self_long <- 
+  qualtrics_df %>% 
+  select(subj_id, matches("OCI.R_"), matches("zung_"), matches("neutral_")) %>%
+  select(-contains("Click")) %>% # Self report columns with randomization and RT for block
+  select(subj_id, all_of(item_instructions$item_name)) %>%
+  pivot_longer(cols = -subj_id, names_to = "item_name", values_to = "item_value")%>% 
+  left_join(., item_instructions, by='item_name')%>% # add item content 
+  filter(!(subj_id %in% excluded))
+
+# Infrequency df 
+inf_df <- self_long %>%
+  filter(str_detect(item_name, "inf")) %>% # Add a new column to indicate whether the answer failed the attention check
+  mutate(attention_check_failed = case_when(
+    item_name == "OCI.R_inf_1" & item_value != "0" ~ TRUE,
+    item_name == "OCI.R_inf_2" & item_value != "0" ~ TRUE,
+    item_name == "zung_inf_1" & !(item_value %in% c("4", "3")) ~ TRUE,
+    item_name == "zung_inf_2" & item_value != "1" ~ TRUE,
+    TRUE ~ FALSE
+  )) %>%
+    mutate(fail_indicator = as.integer(attention_check_failed)) %>%
+  # add mean confidence to infrequency df
+  # this is used later on to probe for the relationship between infrequency item endorsment and mean confidence 
+  left_join(mean_conf_df %>% select(subj_id, mean_conf),
+            by = "subj_id")
+
+item_failures <- inf_df %>%
+  select(subj_id, item_name, fail_indicator) %>%
+  pivot_wider(names_from = item_name, values_from = fail_indicator, values_fill = list(fail_indicator = 0)) %>% 
+  rowwise() %>%
+  mutate(total_fail = sum(c_across(-subj_id)))
+
+# id vector of participants who failed attention checks
+failed_attention <- item_failures %>% filter(total_fail>0) %>% dplyr::pull(subj_id)
+
+# number and percentage of participants who failed attention checks after exclusion
+failed_attention__after_exc_num <- item_failures %>% filter(total_fail>0) %>% dplyr::pull(subj_id) %>% length()
+percentage_failed_attention <- failed_attention__after_exc_num/total_n
+
+# neutral item names
+neutral_items <- c('neutral_1', 'neutral_2', 'neutral_3', 'neutral_4', 'neutral_5', 'neutral_6', 'neutral_7', 'neutral_8', 
+                   'neutral_9', 'neutral_10', 'neutral_11', 'neutral_12', 'neutral_13', 'neutral_14')
+
+# add mean neutral rating (acquiescence), failed attention status and accuracy to mean confidence df
+mean_conf_df <- mean_conf_df %>%
+  mutate(
+    subj_id = as.character(subj_id),  
+    failed_attention = ifelse(subj_id %in% as.character(failed_attention), 'Inattentive', 'Attentive') 
+  ) %>%
+  left_join(acc_df, by = "subj_id") %>%
+  mutate(failed_attention = factor(failed_attention, levels = c("Attentive", "Inattentive"))) %>% 
+  left_join(
+    self_long %>% 
+      filter(item_name %in% neutral_items) %>% 
+      group_by(subj_id) %>% 
+      summarise(mean_rating = mean(as.numeric(item_value))),
+    by = "subj_id")
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Hypothesis testing: 
+# 1. Inattentive participants have higher confidence than attentive participants
+inattentive_t_test_df <- mean_conf_df %>%
+  select(failed_attention, mean_conf) %>%
+  mutate(failed_attention = factor(failed_attention), # Convert to factor
+         failed_attention = relevel(failed_attention, ref = "Inattentive")) 
+
+inattenetive_descriptive <- inattentive_t_test_df %>%
+  group_by(failed_attention) %>%
+  summarise(sd_mean_conf = sd(mean_conf, na.rm = TRUE),
+            mean_conf = mean(mean_conf, na.rm = TRUE))
+
+inattentive_confidence_t_test <- 
+t.test(mean_conf ~ failed_attention, data = inattentive_t_test_df, alternative = 'greater')
+
+# 2. Correlation between mean confidence and mean neutral rating (acquiescence)
+exp.h2.spearman_test <- mean_conf_df %>%
+    with(cor.test(mean_rating, mean_conf, method = "spearman"))
+
+exp.h2.pearson_test <- mean_conf_df %>%
+  with(cor.test(mean_rating, mean_conf, method = "pearson"))
+
+# plot inattentive vs attentive mean confidence 
+inattentive_confidence_fig <- 
+  mean_conf_df %>% 
+  ggplot(aes(x = failed_attention, y = mean_conf, group = failed_attention, color = failed_attention)) +
+  geom_jitter(width = 0.25, alpha = 0.6, size = 3) +
+  stat_summary(fun = mean, geom = "point", shape = 21, size = 4, color = "black") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2, color = "black") +
+  labs(x = "", y = "Mean Confidence", color = "") +
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  theme_minimal() +
+  theme(legend.position = "none")+
+  theme(text = element_text(size = 16)) +  
+  coord_cartesian(ylim = c(0, 1))+
+  theme(aspect.ratio = 1)
+
+# OCI processing ---------------------------------------------------------------------------------
+# NOTE: item_corrected is **only** calculated for attentive participants
+# Inattentive participants have NA values by design! 
+
+# Basic OCI processing for ALL participants
+oci_basic <- self_long %>%
+  filter(str_detect(item_name, "^OCI.R_")) %>% 
+  filter(!item_name %in% c("OCI.R_inf_1", "OCI.R_inf_2")) %>% 
+  mutate(item_value = as.numeric(item_value)) %>% 
+  left_join(mean_conf_df %>% select(subj_id, mean_rating, failed_attention), by = "subj_id")
+
+# Correction procedure - ONLY for attentive participants
+oci_attentive_corrected <- oci_basic %>%
+  filter(failed_attention == "Attentive") %>%
+  group_by(item_name) %>%
+  mutate(item_corrected = residuals(lm(item_value ~ mean_rating))) %>%
+  ungroup() %>%
+  select(subj_id, item_name, item_corrected)
+
+# Merge corrected scores back to main dataset
+oci_processing <- oci_basic %>%
+  left_join(oci_attentive_corrected, by = c("subj_id", "item_name"))
+
+# Calculate totals
+oci_totals <- oci_processing %>%
+  group_by(subj_id) %>%
+  summarise(
+    total_oci = sum(item_value, na.rm = TRUE), # Original total OCI score
+    total_oci_corrected = if_else(
+      first(failed_attention) == "Attentive",
+      sum(item_corrected, na.rm = TRUE),
+      NA_real_
+    ), # Corrected total OCI score
+    failed_attention = first(failed_attention), # Keep attention status
+    .groups = "drop"
+  ) %>%
+  mutate(
+    # Scale corrected scores to the same range as original scores
+    total_oci_corrected_scaled = if_else(
+      failed_attention == "Attentive", # only scale for attentive participants
+      {
+        min_corrected <- min(total_oci_corrected[failed_attention == "Attentive"], na.rm = TRUE)
+        max_corrected <- max(total_oci_corrected[failed_attention == "Attentive"], na.rm = TRUE)
+        (total_oci_corrected - min_corrected) / (max_corrected - min_corrected) * 
+          max(total_oci, na.rm = TRUE)
+      }, 
+      NA_real_ # leave NA for inattentive participants 
+    )
+  )
+
+# Add oci totals to mean_conf_df
+mean_conf_df <- mean_conf_df %>%
+  left_join(oci_totals %>% select(subj_id, total_oci, total_oci_corrected_scaled), by = "subj_id")
+
+# Correlation
+oci_acq_correlation <- cor.test(mean_conf_df$total_oci, mean_conf_df$mean_rating, method = "pearson")
+
+# plot oci with confidence with color coding for infrequency fails 
+oci_confidence_no_screening<-
+  mean_conf_df %>%
+  ggplot(aes(x = total_oci, y = mean_conf, color = failed_attention)) +
+  geom_point(size = 3, alpha = 0.8) +
+  geom_smooth(method = 'lm', color = "black", linetype = "dashed") +
+  ggpubr::stat_cor(method = "pearson", color = "black", show.legend = FALSE, 
+                   label.y = 0.9, label.x = 0.2, size = 5, 
+                   aes(label = paste0("italic(r) == ", ..r.., "*','~italic(p) == ", ..p..)))+
+  theme_minimal() +
+  #scale_color_gradient(low = "#3399ff", high = "#ffb3b3") + 
+  theme_minimal(base_size = 16)+
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  labs(x = 'Total OCI-R Score', y = 'Mean Confidence', color='')+
+  theme(aspect.ratio = 1)
+
+#filter out inattentive 
+oci_confidence_filter_inattentive <-
+  mean_conf_df %>%
+  filter(failed_attention =='Attentive') %>% 
+  ggplot(aes(x = total_oci, y = mean_conf)) +
+  geom_point(size = 3, alpha = 0.8, color='#3399ff') +
+  geom_smooth(method = 'lm', color = "black", linetype = "dashed") +
+  ggpubr::stat_cor(method = "pearson", color = "black", show.legend = FALSE, 
+                   label.y = 0.9, label.x = 0.2, size = 5, 
+                   aes(label = paste0("italic(r) == ", ..r.., "*','~italic(p) == ", ..p..)))+
+  theme_minimal() +
+  theme_minimal(base_size = 16)+
+  labs(x = 'Total OCI-R Score', y = '', color='')+
+  theme(aspect.ratio = 1)
+
+# oci-confidence correlation stats 
+oci_confidence_cor <-
+cor.test(mean_conf_df$total_oci, mean_conf_df$mean_conf, method = 'pearson')
+
+oci_confidence_cor_coef <- oci_confidence_cor$estimate
+
+oci_confidence_filter_inattentive_cor <- mean_conf_df %>%
+  filter(failed_attention == 'Attentive') %>%
+  with(cor.test(total_oci, mean_conf, method = 'pearson'))
+
+oci_confidence_filter_inattentive_cor_coef <- oci_confidence_filter_inattentive_cor$estimate
+
+oci_confidence_filter_inattentive_acq_cor <- mean_conf_df %>%
+  filter(failed_attention == 'Attentive') %>%
+  with(cor.test(total_oci_corrected_scaled, mean_conf, method = 'pearson'))
+
+oci_confidence_filter_inattentive_acq_cor_coef<- oci_confidence_filter_inattentive_acq_cor$estimate
+
+#inattentive participants OCI scores 
+oci_inattention_t.test <- 
+t.test(total_oci ~ failed_attention, data = mean_conf_df, paired = FALSE)
+
+# descriptive stats: oci scores of attentive and inattentive
+oci_inattention_descriptive <- 
+  mean_conf_df %>% 
+  group_by(failed_attention) %>% 
+  summarise(mean_oci = mean(total_oci), sd_oci = sd(total_oci), n = n())
+
+inattentive_oci_fig <- 
+  mean_conf_df %>% 
+  ggplot(aes(x = failed_attention, y = total_oci, group = failed_attention, color = failed_attention)) +
+  geom_jitter(width = 0.25, alpha = 0.6, size = 3) +
+  stat_summary(fun = mean, geom = "point", shape = 21, size = 4, color = "black") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2, color = "black") +
+  labs(x = "", y = "Total OCI-R score", color = "") +
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  theme_minimal() +
+  theme(legend.position = "none")+
+  theme(text = element_text(size = 16))+
+  theme(aspect.ratio = 1)
+  #coord_cartesian(ylim = c(0, 1))
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# compute ocir skewness for each item 
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+oci_items_df <- self_long %>% filter(str_starts(item_name, 'OCI.R')) %>% 
+  filter(item_name != 'OCI.R_inf_1' & item_name != 'OCI.R_inf_2') %>% 
+  mutate(item_value = as.numeric(item_value))
+
+# Create empty list to store results
+oci_skewness_results_list <- list()
+
+# Loop through each OCI item
+for(item in ocir_items) {
+ skew_value <- moments::skewness(
+   oci_items_df %>% 
+   filter(item_name == paste0("OCI.R_", substr(item, 6, 7))) %>% 
+   select(item_value)
+ )[[1]]  
+ 
+ # Store results in list
+ oci_skewness_results_list[[item]] <- data.frame(
+   item_name = item,
+   skewness = skew_value
+ )
+}
+
+# Combine all results into a single dataframe
+oci_skewness_results_df <- do.call(rbind, oci_skewness_results_list)
+
+# Sort by skewness value
+oci_skewness_results_df <- oci_skewness_results_df %>% 
+ arrange(desc(skewness))
+
+# Calculate mean skewness across all items
+ocir_mean_skew <- mean(oci_skewness_results_df$skewness)
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Correlation between SDS with mean confidence after controlling for acquiescence------------
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# SDS reversed items 
+sds_reversed_items <- c("zung_2", "zung_5", "zung_6", "zung_11", "zung_12", "zung_14", "zung_16", "zung_17", "zung_18", "zung_20")
+
+# Basic SDS processing for ALL participants
+sds_basic <- self_long %>%
+  filter(str_detect(item_name, "^zung_")) %>%
+  filter(!item_name %in% c("zung_inf_1", "zung_inf_2")) %>%
+  mutate(item_value = as.numeric(item_value)) %>%
+  # Apply reverse scoring
+  mutate(item_value = if_else(
+    item_name %in% sds_reversed_items,
+    reverse_scores(item_value),
+    item_value
+  )) %>%
+  # Add reversed label
+  mutate(reversed = if_else(item_name %in% sds_reversed_items, "reversed", "standard")) %>%
+  left_join(mean_conf_df %>% select(subj_id, mean_rating, failed_attention), by = "subj_id")
+
+# Correction procedure - ONLY for attentive participants
+sds_attentive_corrected <- sds_basic %>%
+  filter(failed_attention == "Attentive") %>%
+  group_by(item_name) %>%
+  mutate(item_corrected = residuals(lm(item_value ~ mean_rating))) %>%
+  ungroup() %>%
+  select(subj_id, item_name, item_corrected)
+
+# Merge corrected scores back to main dataset
+sds_processing <- sds_basic %>%
+  left_join(sds_attentive_corrected, by = c("subj_id", "item_name"))
+
+# Calculate totals (keeping original structure)
+sds_totals <- sds_processing %>%
+  group_by(subj_id) %>%
+  summarise(
+    total_sds = sum(item_value, na.rm = TRUE), # Original total SDS score
+    total_sds_positive = sum(item_value[reversed == "standard"], na.rm = TRUE), # Positive items
+    total_sds_negative = sum(item_value[reversed == "reversed"], na.rm = TRUE), # Negative items
+    total_sds_corrected = if_else(
+      first(failed_attention) == "Attentive",
+      sum(item_corrected, na.rm = TRUE),
+      NA_real_
+    ), # Corrected total SDS score
+    failed_attention = first(failed_attention), # Keep attention status
+    .groups = "drop"
+  ) %>%
+  mutate(
+    # Scale corrected scores to the same range as original scores
+    total_sds_corrected_scaled = if_else(
+      failed_attention == "Attentive", # only scale for attentive participants
+      {
+        min_corrected <- min(total_sds_corrected[failed_attention == "Attentive"], na.rm = TRUE)
+        max_corrected <- max(total_sds_corrected[failed_attention == "Attentive"], na.rm = TRUE)
+        (total_sds_corrected - min_corrected) / (max_corrected - min_corrected) * 
+          max(total_sds, na.rm = TRUE)
+      }, 
+      NA_real_ # leave NA for inattentive participants 
+    )
+  )
+
+# Add SDS totals to mean_conf_df
+mean_conf_df <- mean_conf_df %>%
+  left_join(sds_totals %>% select(subj_id, total_sds, total_sds_positive, total_sds_negative, total_sds_corrected_scaled), by = "subj_id")
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# SDS-confidence correlation stats 
+sds_confidence_cor <-
+  cor.test(mean_conf_df$total_sds, mean_conf_df$mean_conf, method = 'pearson')
+
+# SDS total and mean confidence correlation  
+sds_confidence_filter_inattentive_cor <- mean_conf_df %>%
+  filter(failed_attention == 'Attentive') %>%
+  with(cor.test(total_sds, mean_conf, method = 'pearson'))
+sds_confidence_filter_inattentive_cor_coef <- sds_confidence_filter_inattentive_cor$estimate
+
+# SDS corrected scores and mean confidence correlation
+sds_confidence_filter_inattentive_acq_cor <- mean_conf_df %>%
+  filter(failed_attention == 'Attentive') %>%
+  with(cor.test(total_sds_corrected_scaled, mean_conf, method = 'pearson'))
+sds_confidence_filter_inattentive_acq_cor_coef <- sds_confidence_filter_inattentive_acq_cor$estimate
+
+# SDS total and mean rating, attentive only 
+sds_confidence_filter_inattentive_mean_rating_cor <- mean_conf_df %>%
+  filter(failed_attention == 'Attentive') %>%
+  with(cor.test(total_sds, mean_rating, method = 'pearson'))
+
+# SDS attentive vs. inattentive scores 
+sds_attentiveness_t.test <- 
+t.test(total_sds ~ failed_attention, data = mean_conf_df, paired = FALSE)
+#sds inattentive vs. attentive scores 
+sds_inattentiveness_desc <- 
+  mean_conf_df %>%
+  group_by(failed_attention) %>%
+  summarise(mean_sds = mean(total_sds), sd_sds = sd(total_sds), n = n())
+
+inattentive_sds_fig <- 
+  mean_conf_df %>% 
+  ggplot(aes(x = failed_attention, y = total_sds, group = failed_attention, color = failed_attention)) +
+  geom_jitter(width = 0.25, alpha = 0.6, size = 3) +
+  stat_summary(fun = mean, geom = "point", shape = 21, size = 4, color = "black") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2, color = "black") +
+  labs(x = "", y = "Total SDS score", color = "") +
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  theme_minimal() +
+  theme(legend.position = "none")+
+  theme(text = element_text(size = 16))  +
+  theme(aspect.ratio = 1)
+
+# SDS correlation with acquiescence 
+sds_acq_cor <- 
+cor.test(mean_conf_df$total_sds, mean_conf_df$mean_rating, method = 'pearson')
+
+# SDS positive and negative items correlation with acquiescence
+#positive items
+sds_positive_acq_cor <-
+cor.test(mean_conf_df$total_sds_positive, mean_conf_df$mean_rating, method = 'pearson')
+
+#negative items
+sds_negative_acq_cor <-
+cor.test(mean_conf_df$total_sds_negative, mean_conf_df$mean_rating, method = 'pearson')
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# compute skewness for all SDS items 
+# Get unique SDS items from sds_processing
+sds_items <- unique(sds_processing$item_name)
+
+# Create empty list to store results
+sds_skewness_results_list <- list()
+
+# Loop through each SDS item
+for(item in sds_items) {
+ skew_value <- moments::skewness(
+   sds_processing %>% 
+   filter(item_name == item) %>% 
+   select(item_value)
+ )[[1]]  # Extract the numeric value from the named vector
+ 
+ # Store results in list
+ sds_skewness_results_list[[item]] <- data.frame(
+   item_name = item,
+   skewness = skew_value
+ )
+}
+
+# Combine all results into a single dataframe
+sds_skewness_results_df <- do.call(rbind, sds_skewness_results_list)
+
+# Calculate mean skewness across all items
+sds_mean_skew <- mean(sds_skewness_results_df$skewness)
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Creating online experiment plot ------------------
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+# first row: mean confidence, total OCI-R, total SDS among attentive/inattetive
+inattentive_acq_fig_first_row <- 
+inattentive_confidence_fig | inattentive_oci_fig | inattentive_sds_fig +theme(
+  text = element_text(size = 16),
+  legend.text = element_text(size = 14),      
+  legend.title = element_text(size = 16)       
+)
+
+# Second row: acquiescence with: confidence, oci, sds 
+neutral_items_confidence_fig <- 
+  mean_conf_df %>%
+  ggplot(aes(x = mean_rating, y = mean_conf, color = failed_attention)) +
+  geom_point(size = 3, alpha = 0.6) +
+  geom_smooth(aes(x = mean_rating, y = mean_conf), method = 'lm', color = "black", linetype = "dashed") +
+ggpubr::stat_cor(aes(x = mean_rating, y = mean_conf, 
+                     label = paste0("italic(r) == ", ..r.., "*','~italic(p) == ", ..p..)), 
+                 method = "pearson", color = "black", show.legend = FALSE, size = 5,
+                 r.digits = 3)+
+  theme_minimal() +
+  theme(text = element_text(size = 16),
+        legend.position = "none") + 
+  coord_cartesian(xlim = c(2, 4.5), ylim = c(0,1)) +
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  labs(x = 'Mean Neutral Rating', y = 'Mean Confidence', color='')+
+  theme(aspect.ratio = 1)
+
+neutral_items_oci_fig <- 
+  mean_conf_df %>%
+  ggplot(aes(x = mean_rating, y = total_oci, color = failed_attention)) +
+  geom_point(size = 3, alpha = 0.6) +
+  geom_smooth(method = 'lm', color = "black", linetype = "dashed") +
+  ggpubr::stat_cor(aes(x = mean_rating, y = total_oci, 
+                     label = paste0("italic(r) == ", ..r.., "*','~italic(p) == ", ..p..)), 
+                 method = "pearson", color = "black", show.legend = FALSE, size = 5,
+                 r.digits = 3)+  theme_minimal() +
+  theme(text = element_text(size = 16),
+        legend.position = "none") +  
+  coord_cartesian(xlim = c(2, 4.5)) +
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  labs(x = 'Mean Neutral Rating', y = 'Total OCI-R score', color='')+
+  theme(aspect.ratio = 1)
+
+neutral_items_sds_fig <- 
+  mean_conf_df %>%
+  ggplot(aes(x = mean_rating, y = total_sds, color = failed_attention)) +
+  geom_point(size = 3, alpha = 0.6) +
+  geom_smooth(method = 'lm', color = "black", linetype = "dashed") +
+  ggpubr::stat_cor(aes(x = mean_rating, y = total_sds, 
+                     label = paste0("italic(r) == ", ..r.., "*','~italic(p) == ", ..p..)), 
+                 method = "pearson", color = "black", show.legend = FALSE, size = 5,
+                 r.digits = 3)+  
+  theme_minimal() +
+  theme(text = element_text(size = 16)) +  
+    theme(
+    text = element_text(size = 16),
+    legend.text = element_text(size = 16),     
+    legend.title = element_text(size = 20),     
+    legend.key.size = unit(1.5, "lines")        
+  ) +
+  coord_cartesian(xlim = c(2, 4.5)) +
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  labs(x = 'Mean Neutral Rating', y = 'Total SDS score', color='')+
+  theme(aspect.ratio = 1)
+
+inattentive_acq_fig_second_row <- 
+  neutral_items_confidence_fig | neutral_items_oci_fig | neutral_items_sds_fig 
+
+# Third row: confidence with oci and sds
+confidence_oci_fig <- 
+  mean_conf_df %>%
+  ggplot(aes(x = mean_conf, y = total_oci, color = failed_attention)) +
+  geom_point(size = 3, alpha = 0.6) +
+  geom_smooth(method = 'lm', color = "black", linetype = "dashed") +
+  ggpubr::stat_cor(aes(x = mean_conf, y = total_oci, 
+                     label = paste0("italic(r) == ", ..r.., "*','~italic(p) == ", ..p..)), 
+                 method = "pearson", color = "black", show.legend = FALSE, size = 5,
+                 r.digits = 3)+  theme_minimal() +
+  theme(text = element_text(size = 16),
+        legend.position = "none") +  
+  coord_cartesian(xlim = c(0, 1)) +
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  labs(x = 'Mean Confidence', y = 'Total OCI-R score', color='')+
+  theme(aspect.ratio = 1)
+
+confidence_sds_fig <- 
+  mean_conf_df %>%
+  ggplot(aes(x = mean_conf, y = total_sds, color = failed_attention)) +
+  geom_point(size = 3, alpha = 0.6) +
+  geom_smooth(method = 'lm', color = "black", linetype = "dashed") +
+  ggpubr::stat_cor(aes(x = mean_conf, y = total_sds, 
+                     label = paste0("italic(r) == ", ..r.., "*','~italic(p) == ", ..p..)), 
+                 method = "pearson", color = "black", show.legend = FALSE, size = 5,
+                 r.digits = 3)+  
+  theme_minimal() +
+  theme(text = element_text(size = 16),
+        legend.position = 'none') +  
+  coord_cartesian(xlim = c(0, 1)) +
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  labs(x = 'Mean Confidence', y = 'Total SDS score', color='')+
+  theme(aspect.ratio = 1)
+
+# Plotting the scaled OCI with mean confidence
+oci_confidence_filter_inattentive_and_acq <- 
+mean_conf_df %>%
+  filter(failed_attention =='Attentive') %>% 
+  ggplot(aes(x = mean_conf, y = total_oci_corrected_scaled)) +
+  geom_point(size = 3, alpha = 0.8, color='#3399ff') +
+  geom_smooth(method = 'lm', color = "black", linetype = "dashed") +
+  ggpubr::stat_cor(aes(x = mean_conf, y = total_oci_corrected_scaled, 
+                     label = paste0("italic(r) == ", ..r.., "*','~italic(p) == ", ..p..)), 
+                 method = "pearson", color = "black", show.legend = FALSE, size = 5,
+                 r.digits = 3)+  
+  theme_minimal() +
+  theme(text = element_text(size = 16),
+        legend.position = 'none') + 
+  coord_cartesian(xlim = c(0, 1)) +
+  labs(x = 'Mean Confidence', y = 'Total OCI-R Corrected', color='')+
+  theme(aspect.ratio = 1)
+
+
+inattentive_acq_fig_third_row <- confidence_oci_fig | oci_confidence_filter_inattentive_and_acq| confidence_sds_fig
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# OCI and SDS permutation test $$$$$$
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Create mean_rating_values
+mean_rating_values <- mean_conf_df %>% 
+  group_by(subj_id) %>% 
+  select(subj_id, mean_rating) %>%
+  rename(subj_id = subj_id)
+
+# Function to compute correlation with random acquiescence and down sampling 
+perform_correction_iterations <- function(items_df, mean_rating_values, mean_conf_df,
+                                          n_iterations) {
+  # Initialize list to store all iteration data
+  all_iterations_data <- list()
+  # Initialize dataframe for correlation coefficients
+  correlation_df <- data.frame(
+    iteration = 1:n_iterations,
+    correlation = numeric(n_iterations)
+  )
+  
+  # Get unique items
+  items <- unique(items_df$item_name)
+  # Get total number of participants
+  total_participants <- nrow(mean_rating_values)
+  # Calculate number of participants to keep in each iteration
+  n_keep <- total_participants - 46
+  
+  # Perform iterations
+  for(iter in 1:n_iterations) {
+    # Randomly select participants for this iteration
+    selected_participants <- sample(unique(mean_rating_values$subj_id), 
+                                    size = n_keep, 
+                                    replace = FALSE)
+    
+    # Filter datasets to include only selected participants for this iteration
+    current_mean_rating_values <- mean_rating_values %>%
+      filter(subj_id %in% selected_participants)
+    
+    current_items_df <- items_df %>%
+      filter(subj_id %in% selected_participants)
+    
+    current_mean_conf_df <- mean_conf_df %>%
+      filter(subj_id %in% selected_participants)
+    
+    # Create a single random rating assignment for each participant
+    participant_ratings <- data.frame(
+      subj_id = selected_participants,
+      mean_rating = sample(current_mean_rating_values$mean_rating, 
+                           size = length(selected_participants), 
+                           replace = FALSE)
+    )
+    
+    # Update mean ratings in items_df for this iteration
+    current_oci_items <- current_items_df %>%
+      select(-mean_rating) %>%
+      left_join(participant_ratings, by = "subj_id")
+    
+    # Apply correction
+    current_oci_items <- current_oci_items %>%
+      group_by(item_name) %>% 
+      mutate(
+        item_corrected = as.numeric(residuals(lm(item_value ~ mean_rating, data = cur_data())))
+      ) %>%
+      ungroup()
+    
+    # Calculate totals per participant
+    participant_totals <- current_oci_items %>%
+      group_by(subj_id) %>%
+      summarise(
+        total_oci = sum(item_value),
+        total_oci_corrected = sum(item_corrected)
+      ) %>%
+      mutate(total_oci_corrected_scaled = (total_oci_corrected - min(total_oci_corrected)) / 
+               (max(total_oci_corrected) - min(total_oci_corrected)) * 62)
+    
+
+    # Calculate correlation using the totals
+    current_results <- current_mean_conf_df %>%
+      left_join(
+        participant_totals %>%
+          rename(subj_id = subj_id),
+        by = 'subj_id'
+      ) 
+    
+    # Store correlation coefficient
+    correlation_df$correlation[iter] <- cor.test(
+      current_results$total_oci_corrected_scaled.y, 
+      current_results$mean_conf,
+      method = 'pearson'
+    )$estimate
+    
+    # Join totals back to the item-level data
+    full_iteration_data <- current_oci_items %>%
+      left_join(participant_totals, by = "subj_id") %>%
+      left_join(
+        current_mean_conf_df %>% 
+          dplyr::select(subj_id, mean_conf),
+        by = "subj_id"
+      ) %>%
+      mutate(iteration = iter) %>%
+      dplyr::select(iteration, subj_id, item_name, item_value, mean_rating, 
+             item_corrected, total_oci, total_oci_corrected, total_oci_corrected_scaled, mean_conf)
+    
+    # Store in all_iterations_data
+    all_iterations_data[[iter]] <- full_iteration_data
+  }
+  
+  # Combine all iterations into one dataframe
+  all_results <- bind_rows(all_iterations_data)
+  
+  return(list(
+    correlations = correlation_df,
+    full_results = all_results
+  ))
+}
+
+# Set new seed 
+set.seed(123)
+
+# Run the analysis 
+oci_null_acq_results <- perform_correction_iterations(
+  items_df = oci_processing,
+  mean_rating_values = mean_rating_values,
+  mean_conf_df = mean_conf_df,
+  n_iterations = 1000
+)
+# Extract results into separate dataframes
+oci_conf_correlations_df <- oci_null_acq_results$correlations
+
+# compute the drop in correlation in our analysis 
+oci_conf_cor_drop <- 
+    oci_confidence_filter_inattentive_acq_cor_coef - oci_confidence_cor_coef
+
+# compute drop in correlation in the null analysis
+oci_conf_correlations_df$correlation_drop <- oci_conf_correlations_df$correlation - oci_confidence_cor_coef
+
+# Count how many permutation drops are more negative than the observed drop
+n_cor_drop_larger <- sum(oci_conf_correlations_df$correlation_drop < oci_conf_cor_drop)
+
+# perform same analysis for the SDS 
+perform_sds_correction_iterations <- function(items_df, mean_rating_values, mean_conf_df, 
+                                              n_iterations) {
+  # Initialize list to store all iteration data
+  all_iterations_data <- list()
+  
+  # Initialize dataframe for correlation coefficients
+  correlation_df <- data.frame(
+    iteration = 1:n_iterations,
+    correlation = numeric(n_iterations)
+  )
+  
+  # Get unique items
+  items <- unique(items_df$item_name)
+  
+  # Get total number of participants
+  total_participants <- nrow(mean_rating_values)
+  
+  # Calculate number of participants to keep in each iteration
+  n_keep <- total_participants - 46
+  
+  # Perform iterations
+  for(iter in 1:n_iterations) {
+    # Randomly select participants for this iteration
+    selected_participants <- sample(unique(mean_rating_values$subj_id),
+                                    size = n_keep,
+                                    replace = FALSE)
+    
+    # Filter datasets to include only selected participants for this iteration
+    current_mean_rating_values <- mean_rating_values %>%
+      filter(subj_id %in% selected_participants)
+    
+    current_items_df <- items_df %>%
+      filter(subj_id %in% selected_participants)
+    
+    # Filter and prepare mean_conf data (select only needed columns)
+    current_mean_conf_df <- mean_conf_df %>%
+      filter(subj_id %in% selected_participants) %>%
+      select(subj_id, mean_conf)
+    
+    # Create a single random rating assignment for each participant
+    participant_ratings <- data.frame(
+      subj_id = selected_participants,
+      mean_rating = sample(current_mean_rating_values$mean_rating,
+                           size = length(selected_participants),
+                           replace = FALSE)
+    )
+    
+    # Update mean ratings in items_df for this iteration
+    current_sds_items <- current_items_df %>%
+      select(-mean_rating) %>%
+      left_join(participant_ratings, by = "subj_id")
+    
+    # Apply correction (reverse scoring already done in main script)
+    current_sds_items <- current_sds_items %>%
+      group_by(item_name) %>% 
+      mutate(
+        item_corrected = as.numeric(residuals(lm(item_value ~ mean_rating, data = cur_data())))
+      ) %>%
+      ungroup()
+    
+    # Calculate totals per participant
+    participant_totals <- current_sds_items %>%
+      group_by(subj_id) %>%
+      summarise(
+        total_sds = sum(item_value),
+        total_sds_corrected = sum(item_corrected),
+        .groups = "drop"
+      ) %>%
+      mutate(
+        total_sds_corrected_scaled = (total_sds_corrected - min(total_sds_corrected)) / 
+          (max(total_sds_corrected) - min(total_sds_corrected)) * 
+          max(total_sds)
+      )
+    
+    # Calculate correlation using the totals
+    current_results <- current_mean_conf_df %>%
+      left_join(participant_totals, by = "subj_id")
+    
+    # Store correlation coefficient
+    correlation_df$correlation[iter] <- cor.test(
+      current_results$total_sds_corrected_scaled,
+      current_results$mean_conf,
+      method = 'pearson'
+    )$estimate
+    
+    # Join totals back to the item-level data
+    full_iteration_data <- current_sds_items %>%
+      left_join(participant_totals, by = "subj_id") %>%
+      mutate(iteration = iter) %>%
+      select(iteration, subj_id, item_name, item_value, mean_rating, 
+             item_corrected, total_sds, total_sds_corrected, total_sds_corrected_scaled)
+    
+    # Store in all_iterations_data
+    all_iterations_data[[iter]] <- full_iteration_data
+  }
+  
+  # Combine all iterations into one dataframe
+  all_results <- bind_rows(all_iterations_data)
+  
+  return(list(
+    correlations = correlation_df,
+    full_results = all_results
+  ))
+}
+
+
+# Run the analysis 
+sds_null_acq_results <- perform_sds_correction_iterations(
+  items_df = sds_processing,
+  mean_rating_values = mean_rating_values,
+  mean_conf_df = mean_conf_df,
+  n_iterations = 1000
+)
+
+
+# Extract results into separate dataframes
+sds_conf_correlations_df <- sds_null_acq_results$correlations
+
+# compute the drop in correlation in our analysis 
+sds_conf_cor_drop <- sds_confidence_filter_inattentive_acq_cor$estimate - sds_confidence_cor$estimate
+
+# compute drop in correlation in the null analysis
+sds_conf_correlations_df$correlation_drop <- sds_conf_correlations_df$correlation - sds_confidence_cor$estimate
+
+# Calculate how many correlations drops were smaller or equal 
+sds_n_cor_drop_larger <- sum(sds_conf_correlations_df$correlation_drop <= sds_conf_cor_drop)
+
+# calculate how many correlation drops were smaller than the observed drop
+sds_n_cor_drop_smaller <- 1000 - sds_n_cor_drop_larger
+
+# p-value 
+sds_permutation_p_value <- sds_n_cor_drop_larger / 1000
+
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# plot ###############################
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+offset <- 0.005
+# Plot OCI-R
+oci_permutation_figure <-
+  ggplot(oci_conf_correlations_df, aes(x = correlation_drop)) +
+  geom_histogram(binwidth = 0.01, fill = "lightblue", color = "black", alpha = 0.8) +
+  geom_vline(xintercept = oci_conf_cor_drop,
+             color = "red", linewidth = 2) +
+  geom_vline(xintercept = 0,
+             color = "black", linetype = "dashed", linewidth = 0.8) +
+  theme_minimal() +
+  theme(
+    axis.text = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    plot.subtitle = element_text(size = 16, face = "bold", hjust = 0.5),
+    text = element_text(size = 16)
+  ) +
+  labs(
+    subtitle = "OCI-R",
+    x = expression(Delta*r),
+    y = "Count"
+  ) +
+  coord_cartesian(ylim = c(0, 109)) +
+  annotate("text",
+           x = oci_conf_cor_drop + 0.01,
+           y = 80,
+           label = sprintf("Observed\ndrop: %.2f", oci_conf_cor_drop),
+           color = "red",
+           hjust = 0,
+           size = 6)+
+  annotate("segment", # add arrow 
+           x = 0,
+           xend = oci_conf_cor_drop + offset,
+           y = 10,
+           yend = 10,
+           color = "red",
+           linewidth = 0.8,
+           arrow = arrow(length = unit(0.3, "cm"), type = "open"))
+
+# Plot SDS
+sds_permutation_figure <-
+  ggplot(sds_conf_correlations_df, aes(x = correlation_drop)) +
+  geom_histogram(binwidth = 0.01, fill = "lightblue", color = "black", alpha = 0.8) +
+  geom_vline(xintercept = sds_conf_cor_drop,
+             color = "red", linewidth = 2) +
+  geom_vline(xintercept = 0,
+             color = "black", linetype = "dashed", linewidth = 0.8) +
+  theme_minimal() +
+  theme(
+    axis.text = element_text(size = 16),
+    axis.text.y = element_blank(),
+    axis.title = element_text(size = 18),
+    axis.title.y = element_blank(),
+    plot.subtitle = element_text(size = 16, face = "bold", hjust = 0.5),
+    text = element_text(size = 16),
+    axis.ticks.y = element_blank()
+  ) +
+  labs(
+    subtitle = "SDS",
+    x = expression(Delta*r),
+    y = NULL
+  ) +
+  coord_cartesian(ylim = c(0, 109)) +
+  annotate("text",
+           x = -0.15,
+           y = 80,
+           label = "Observed\ndrop: -0.01",
+           color = "red",
+           hjust = 0,
+           vjust = 0.5,
+           size = 6)+
+  annotate("segment", # add arrow
+           x = 0,
+           xend = sds_conf_cor_drop + offset,
+           y = 10,
+           yend = 10,
+           color = "red",
+           linewidth = 0.8,
+           arrow = arrow(length = unit(0.3, "cm"), type = "open"))
+
+# Combine all panels - remove spacer from bottom row
+combined_figure <- (inattentive_acq_fig_first_row /
+                     plot_spacer() /
+                     inattentive_acq_fig_second_row /
+                     plot_spacer() /
+                     inattentive_acq_fig_third_row /
+                     plot_spacer() /
+                     (oci_permutation_figure | sds_permutation_figure)) +
+  plot_layout(heights = c(1, 0, 1, 0.1, 1, 0.1, 0.5)) +
+  plot_annotation(tag_levels = 'A')
+
+ggsave("../figures/combined_inattentive_acq_permutation_fig_cairo.pdf", 
+       combined_figure, 
+       width = 12, 
+       height = 14, 
+       device = cairo_pdf)
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# effect sizes $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Inattentive vs attentive confidence comparison
+inattentive_confidence_d <- cohens_d(
+  mean_conf ~ failed_attention,
+  data = mean_conf_df
+)
+
+# Inattentive vs attentive OCI-R scores
+oci_inattention_d <- cohens_d(
+  total_oci ~ failed_attention,
+  data = mean_conf_df %>% 
+    mutate(failed_attention = factor(failed_attention, 
+                                    levels = c("Inattentive", "Attentive")))
+)
+
+# SDS attentive vs inattentive scores
+sds_attentiveness_d <- cohens_d(
+  total_sds ~ failed_attention,
+  data = mean_conf_df %>% 
+    mutate(failed_attention = factor(failed_attention, 
+                                    levels = c("Inattentive", "Attentive"))))
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Do inattentive participants encounter an easier task? $$$$$$$$$$$$$$$$$
+# Mean increment (difficulty) and confidence  ---------------------------
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+mean_difficulty_df <- 
+  tidy_df %>%  
+  group_by(subj_id) %>% 
+  summarise(
+    mean_increment = mean(as.numeric(increment)),
+    mean_difficulty =  - mean_increment
+  ) %>%
+  left_join(., mean_conf_df %>% # add failed attention
+        select(subj_id, failed_attention, mean_conf))
+
+# check if inattentive had easier task. 
+difficulty_t_test <- t.test(mean_difficulty ~ failed_attention, data = mean_difficulty_df, var.equal = TRUE)
+
+# cohen's D 
+difficulty_cohen_d <- cohens_d(mean_difficulty ~ failed_attention, data = mean_difficulty_df, var.equal = TRUE)
+
+difficulty_attention_plot <- 
+  mean_difficulty_df %>% 
+  ggplot(aes(x=failed_attention, y=mean_difficulty, color=failed_attention)) +
+  geom_jitter(size=3, alpha=0.6, width = 0.2) +
+  stat_summary(fun = mean, geom = 'point', color='black') +
+  stat_summary(fun.data = mean_se, geom = 'errorbar', color='black', width=0.2) +
+  scale_color_manual(values = c("Attentive" = "#3399ff", "Inattentive" = "#ffb3b3")) +
+  labs(color = NULL, x='Attentiveness', y='Mean Difficulty') +
+  coord_cartesian(ylim = c(-70,-10)) +
+  theme_minimal()+
+  theme(aspect.ratio = 1)+
+  theme(text = element_text(size = 20))
+
+# correlation between task difficulty and mean confidence 
+difficulty_confidence_plot <- 
+  mean_difficulty_df %>% 
+  ggplot(aes(x = mean_conf, y = mean_difficulty)) +
+  geom_point(aes(color = failed_attention), size = 3, alpha = 0.6) +
+  geom_smooth(method = 'lm', color = "black") +
+  ggpubr::stat_cor(method = "spearman", size=5, color = "black", show.legend = FALSE, 
+                   aes(label = paste0("italic(r) == ", ..r.., "*','~italic(p) == ", ..p..))) +
+  scale_color_manual(values = c("Attentive" = "#3399ff", "Inattentive" = "#ffb3b3")) +
+  labs(color = NULL, x='Mean Confidence', y='') +
+  coord_cartesian(ylim = c(-70,-10)) +
+  theme_minimal()+
+  theme(text = element_text(size = 20))+
+  #make the plot sqaure
+  theme(aspect.ratio = 1)
+
+#combine plot 
+difficulty_attention_combined_plot <- ggarrange(difficulty_attention_plot, difficulty_confidence_plot, nrow = 1, common.legend = TRUE, legend = "right")
+  
+#ggsave(filename = './figures/figure_A4.png',difficulty_attention_combined_plot, width = 10, height = 6, dpi = 300)
+
+# spearman correlation test
+difficulty_confidence_cor <- cor.test(mean_difficulty_df$mean_conf, mean_difficulty_df$mean_difficulty, method = 'spearman')
+
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# Effects of Gender on confidence an inattention #######
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# construct df with Sex and failed attention status 
+failed_attention_gender_df <- data.frame(
+  subj_id = as.character(subj_ids), 
+  failed_attention = subj_ids %in% failed_attention
+) %>%
+  filter(!(subj_id %in% excluded_for_accuracy)) %>%
+  left_join(
+    demographic_df %>% 
+      mutate(subj_id = as.character(subj_id)) %>% 
+      select(subj_id, Sex), 
+    by = 'subj_id'
+  ) %>%
+  filter(Sex %in% c('Male', 'Female')) %>%
+  left_join(
+    mean_conf_df %>% 
+      mutate(subj_id = as.character(subj_id)) %>% 
+      select(subj_id, mean_conf), 
+    by = 'subj_id'
+  ) %>%
+  mutate(failed_attention = ifelse(failed_attention, 'Inattentive', 'Attentive'))
+
+count_gender_in_attention <- failed_attention_gender_df %>% 
+  group_by(failed_attention, Sex) %>% 
+  summarise(n=n())
+
+# plot frequency of Sex by attention check status
+gender_inatttent <- 
+ggplot(count_gender_in_attention, aes(x = factor(failed_attention), y = n, fill = Sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "", y = "Frequency") +
+  scale_x_discrete(labels = c("Attentive", "Inattentive")) +
+  theme_minimal()+
+  theme(text = element_text(size = 16)) 
+
+#ggsave(filename = '../figures/figure_A2.png', gender_inatttent, height = 5, width = 5, dpi = 300) 
+
+# create contingency table for chi-squared test
+attention_gender_table <- xtabs(n ~ failed_attention + Sex, data = count_gender_in_attention)
+
+# chi-squared test
+chisq_result <- chisq.test(attention_gender_table)
+
+# sample size for chi-square test (total n minus two participants who didn't report Sex). 
+chi_sqaure__sample_size <- sum(attention_gender_table)
+
+# Use apa_print() with sample size
+apa_result_chi_sqaure <- apa_print(chisq_result, n = chi_sqaure__sample_size)
+#attention_gender_table <- as.data.frame(attention_gender_table)
+
+# Plot mean confidence by Sex and attention check status
+inattentive_sex_fig<-
+failed_attention_gender_df %>%
+  ggplot(aes(x=as.factor(failed_attention), y=mean_conf, color=failed_attention))+
+  scale_color_manual(values = c("#3399ff", "#ffb3b3")) + 
+  geom_jitter(width = 0.25, alpha = 0.6, size = 3) +
+  stat_summary(fun = mean, geom = "point", shape = 21, size = 4, color = "black") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2, color = "black")+
+  facet_wrap(~Sex) +
+  theme_minimal()+
+  labs(color='', x='Attentiveness', y='Mean Confidence')+
+  theme(text = element_text(size = 16))
+
+ggsave("../figures/sex_differences_conf_fig.png", plot = inattentive_sex_fig, width = 8, height = 6, dpi = 300, bg='white')
+
+# t.test and effect size for gender inattentiveness 
+# make male the reference group 
+failed_attention_gender_df$Sex <- factor(failed_attention_gender_df$Sex, 
+                                        levels = c("Male", "Female"))
+
+t_test_gender_confidence <- t.test(mean_conf ~ Sex, data = failed_attention_gender_df)
+
+# Cohen's d for mean confidence by Sex
+gender_confidence_d <- cohens_d(
+  mean_conf ~ Sex,
+  data = failed_attention_gender_df)
+
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+## Effects of inattentiveness and acquiesence controlling for age and sex ------------------------
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+contorl_age_sex_df <- mean_conf_df %>% 
+  left_join(., demographic_df %>% 
+              select(subj_id, Age, Sex),
+             by = "subj_id") %>% 
+  filter(!(Age %in% c('CONSENT_REVOKED', 'DATA_EXPIRED')) & 
+           !(Sex %in% c('CONSENT_REVOKED', 'DATA_EXPIRED')))
+
+contorl_age_sex_df$Age <- as.numeric(contorl_age_sex_df$Age)
+
+# Models predicting mean confidence from inattentiveness and acquiescence 
+conf_inatt_m <- lm(mean_conf ~ failed_attention + Sex + Age, data = contorl_age_sex_df)
+summary(conf_inatt_m)
+
+# Models predicting mean confidence from acquiescence
+conf_acq_m <- lm(mean_conf ~ mean_rating + Sex + Age, data = contorl_age_sex_df)
+summary(conf_acq_m)
+```
+
+## Inattentiveness and acquiescence are associated with shifts in confidence ratings
+
+We conducted an online experiment involving a perceptual decision task with self-report measures designed to detect inattentive responding and acquiescence. Our sample comprised 195 participants recruited from Prolific, of whom 50 were classified as inattentive, in line with our preregistered sample size (<https://osf.io/jdquy>). Using the same perceptual decision task as in Rouault et al. [@rouault2018] and Hoven, Luigjes et al. [@hoven2023howDo], participants were asked to decide which of two squares contained more black dots and rate their confidence in this decision. Five participants were excluded for having an average accuracy below 60%. Subsequently, participants completed questionnaires for OCD [OCI-R @foa2002] and depression [SDS @zung1965].Inattentive participants were detected using catch 'infrequency items', such as "I often rearrange the furniture in my home to prepare for the arrival of magical beans" (expected answer: "not at all"), as suggested by Zorowitz et al. [@zorowitz2023].
+
+In addition, we included an inventory of 14 "content-neutral" items, that were curated by us to quantify participants' tendency to produce high or low ratings irrespective or content (acquiescence). We used a subset of items from the validated Extreme Response Style measure (e.g. "I like to visit places that are totally different from my home")[@greenleaf1992], and added items of our own (e.g., "I believe there are relatively few different breeds of cats"). Crucially, items were chosen such that psychopathology-relevant content should be balanced out at the inventory level. For example, the novelty-avoiding item "When I go shopping, I find myself spending very little time checking out new products and brands" was mirrored by the novelty-seeking item "I like to visit places that are totally different from my home."
+
+The experiment aimed to test two main hypotheses: that inattentive participants provide higher confidence ratings compared to attentive participants, and that acquiescence is positively correlated with confidence ratings. Consistent with our first hypothesis, inattentive participants gave significantly higher confidence ratings (*M* = `r print_num(inattenetive_descriptive$mean_conf[inattenetive_descriptive$failed_attention=='Inattentive'])`, *SD* = `r print_num(inattenetive_descriptive$sd_mean_conf[inattenetive_descriptive$failed_attention=='Inattentive'])`) compared to attentive participants (*M* = `r print_num(inattenetive_descriptive$mean_conf[inattenetive_descriptive$failed_attention=='Attentive'])`, *SD* = `r print_num(inattenetive_descriptive$sd_mean_conf[inattenetive_descriptive$failed_attention=='Attentive'])`;`r apa_print(inattentive_confidence_t_test)$statistic`) Figure \@ref(fig:experiment), panel A), with a medium-to-large effect size (Cohen's d = `r round(inattentive_confidence_d$Cohens_d, 2)`, 95% CI [`r round(inattentive_confidence_d$CI_low, 2)`, `r round(inattentive_confidence_d$CI_high, 2)`]). In addition, and consistent with our second hypothesis, acquiescence was moderately correlated with mean confidence across the entire sample. As preregistered, a Spearman correlation showed a significant association `r apa_print(exp.h2.spearman_test)$full_result`). To maintain consistency with the other analyses, we also report Pearson's correlation, which yielded a similar effect (`r apa_print(exp.h2.pearson_test)$full_result`; Figure \@ref(fig:experiment), panel D). The effects of inattentiveness and acquiescence remained significant when controlling for age and sex (see Appendix).
+
+Although our experiment was not designed to explain how inattention inflates confidence ratings, we examined one factor that may account for higher confidence among inattentive participants: variation in task difficulty between groups. We found that inattentive participants performed on average an easier task than attentive participants with a large effect size (`r apa_print(difficulty_t_test)$statistic`, Cohen's d = `r round(difficulty_cohen_d$Cohens_d, 2)`, 95% CI [`r round(difficulty_cohen_d$CI_low, 2)`, `r round(difficulty_cohen_d$CI_high, 2)`]); Appendix, Figure A14, left panel). This effect was due to the staircase procedure, which is commonly employed in studies of population variability in metacognition, whereby poorer performance leads to incremental decreases in task difficulty [@hauser2017; @rouault2018; @wise2023]. Task difficulty was in turn negatively associated with mean confidence, such that as the task became easier, mean confidence increased (`r apa_print(difficulty_confidence_cor)$statistic`; Figure A14, right panel). As inattentive participants were on average facing an easier task than attentive participants, it is not surprising that they were more confident in their performance. While outside the focus of the present paper, this effect of staircasing on overall confidence has important implications for the study of individual differences in metacognition in general, not only in the context of mental health.
+
+Next, we performed a series of exploratory analyses to measure the contribution of inattentiveness and acquiescence to the correlations between decision confidence and psychiatric questionnaire scores. First, we examined the association between obsessive-compulsive tendencies and mean confidence and found that the two were positively correlated (`r apa_print(oci_confidence_cor)$full_result`; Figure \@ref(fig:experiment), panel G). This finding aligns with previous reports of overconfidence in participants with high OCI-R scores [@seow2021] and those with high CIT factor scores [@rouault2018; @hoven2023howDo; @benwell2022; @mohr2024; @fox2023]. Yet, this positive correlation contrasts with the clinical presentation of doubt, indecisiveness and heightened uncertainty among individuals with OCD [@dar2004; @dar2021; @rasmussen1989] and with experimental findings of under-confidence in OCD from lab-based experiments [@cougle2007; @dar2004; @karadag2005; @marton2019; @mcnally1993; @zitterl2001; for review see @dar2022]. We were therefore especially interested to see how this correlation would relate to the two surface-level properties of questionnaire-filling behaviour, namely acquiescence and inattentive responding.
+
+Two aspects of the OCI-R questionnaire @foa2002 make it particularly vulnerable to inattentive and biased responding. First, several OCI-R items represent rare behaviours and cognitions (e.g., OCI-R item 10: "I feel I have to repeat certain numbers."), with a mean skewness of `r print_num(ocir_mean_skew)` across all items. As a result, inattentive participants, who sample their responses semi-randomly, would appear highly symptomatic on this inventory. And second, the OCI-R contains no reversed items, which opens the door to uncontrolled acquiescence effects.
+
+Indeed, inattentive participants, identified based on infrequency items, had much higher OCI-R scores (mean OCI-R= `r print_num(oci_inattention_descriptive$mean_oci[oci_inattention_descriptive$failed_attention == "Inattentive"])`) than attentive participants (mean OCI-R= `r print_num(oci_inattention_descriptive$mean_oci[oci_inattention_descriptive$failed_attention == "Attentive"])`, `r apa_print(oci_inattention_t.test)$statistic`; Figure \@ref(fig:experiment), panel B), with a large effect size (Cohen's d = `r round(oci_inattention_d$Cohens_d, 2)`, 95% CI [`r round(oci_inattention_d$CI_low, 2)`, `r round(oci_inattention_d$CI_high, 2)`]). Furthermore, OCI-R was significantly correlated with acquiescence, measured as the mean rating over content-neutral items, across participants (`r apa_print(oci_acq_correlation)$full_result`; Figure \@ref(fig:experiment), panel E). When we excluded inattentive participants, the correlation between OCI-R and confidence weakened (`r apa_print(oci_confidence_filter_inattentive_cor)$full_result`) and then weakened further when controlling for acquiescence by regressing out the mean response to content-neutral items (`r apa_print(oci_confidence_filter_inattentive_acq_cor)$full_result` Figure \@ref(fig:experiment), panel H). Readers should not over-interpret the nonsignificance of the final correlation, but instead focus on the magnitude of the drop in the correlation coefficient (from .27 to .11; \@ref(fig:experiment), panel J), which was highly significant (p\<.001), and cannot be explained by the reduction in the sample size (excluding inattentive participants) nor by the correction procedure (regressing out the mean response to neutral items; for full details see the Appendix -- Supplementary analysis). While it is tempting to assert that the controlled OCI-R confidence correlation (`r apa_print(oci_confidence_filter_inattentive_acq_cor)$full_result`; Figure \@ref(fig:experiment), panel H) might become significant with a larger sample, it is also crucial to bear in mind that in cases of strong confounding variables with imperfect control, the significance of the effects of interest becomes difficult to interpret; in such cases, as sample size increases, the error rate also increases, raising the likelihood of a confusion between true effects and confounds @westfall2016 (see also the Appendix---Reply to Gillan et al., 2025, for more details).
+
+Turning to the SDS depression questionnaire, we observed the expected negative correlation between total scores and decision confidence (although this correlation was not statistically significant,`r apa_print(sds_confidence_cor)$full_result` Figure \ref(fig:experiment) panel I). Low confidence among depressed individuals is in line with the clinical picture of negative appraisal, low self-esteem and low self-efficacy that characterize depression [@beck2016; @hancock1996; @richards2011; @szu-tingfu2012]. Responses to SDS items were descriptively less skewed than to OCI-R items (mean skewness across items, with reversed items reversed= `r print_num(mean(sds_skewness_results_df$skewness))`), as most SDS items pertain to thought patterns that are more common in the general population (with the notable exception of two highly skewed items: "I have trouble with constipation," skewness = `r print_num(sds_skewness_results_df$skewness[sds_skewness_results_df$item_name=='zung_8'])`, and "I feel that others would be better off if I were dead," skewness = `r print_num(sds_skewness_results_df$skewness[sds_skewness_results_df$item_name=='zung_19'])`). Presumably for that reason, there was no difference in SDS scores between attentive (mean total SDS = `r print_num(sds_inattentiveness_desc$mean_sds[sds_inattentiveness_desc$failed_attention=='Attentive'])`) and inattentive responders (mean total SDS = `r print_num(sds_inattentiveness_desc$mean_sds[sds_inattentiveness_desc$failed_attention=='Inattentive'])`; `r apa_print(sds_attentiveness_t.test)$statistic`; Cohen's d = `r round(sds_attentiveness_d$Cohens_d, 2)`, 95% CI [`r round(sds_attentiveness_d$CI_low, 2)`, `r round(sds_attentiveness_d$CI_high, 2)`]; Figure \ref(fig:experiment) panel C). Furthermore, with half of the items being reverse-coded, the SDS is robust to effects of acquiescence, and indeed, SDS scores were uncorrelated with acquiescence (`r apa_print(sds_acq_cor)$full_result`; Figure \ref(fig:experiment) panel F). This null effect was due to opposing effects of acquiescence on SDS standard items (`r apa_print(sds_positive_acq_cor)$full_result`) and reversed items (`r apa_print(sds_negative_acq_cor)$full_result`), which cancelled each other out. Consequently, unlike the OCI-R, the correlation between SDS and confidence was unaffected both by the removal of inattentive responders (`r apa_print(sds_confidence_filter_inattentive_cor)$full_result`) and by controlling for acquiescence (`r apa_print(sds_confidence_filter_inattentive_acq_cor)$full_result`), also reflected in the not significant correlation drop after applying these corrections (Figure \@ref(fig:experiment), panel K). 
+
+```{r experiment, echo=FALSE, fig.cap="Effects of Inattentiveness and Acquiescence on Confidence Ratings, OCI-R and SDS Scores. Panels A-C show comparisons between attentive and inattentive participants for: (A) mean confidence, (B) total OCI-R scores, and (C) total SDS scores. Each point represents scores for one participant. The hollow black circles represent the group mean and error bars show standard error of the mean (SEM). Inattentive participants are marked in pink. Panels D-F show the Pearson correlation between acquiescence and: (D) mean confidence, (E) total OCI-R scores, and (F) total SDS scores across participants. The dashed line indicates a linear fit, with the shaded area showing the 95% confidence interval. Panels G-I show the Pearson correlations between mean confidence and: (G) total OCI-R scores, (H) total OCI-R corrected for acquiescence and excluding inattentive participants and (I) total SDS scores. (J) the relative drop in correlation strength between OCI-R and confidence when controlling for acquiescence and removing inattentive participants (Δr = rcorrected − roriginal). More negative values indicate a larger drop after applying the correction. The red line shows the observed drop in correlation after controlling for inattentive responding and acquiescence, and the blue histogram is a non-parametric null distribution of values (see Appendix for details). (K) similar to J, for SDS."}
+knitr::include_graphics("../figures/combined_inattentive_acq_permutation_fig_with_arrows.png")
+```
+
+# Discussion
+
+Decades of psychological research have identified limitations in the use of self-reports to measure psychological traits and mental health [@bagozzi1990; @baumgartner2001; @campbell; @chandler2020; @curran2016; @greenleaf1992; @huang2012; @meade2012; @nichols1989; @ophir2020; @podsakoff2003; @spector1987; @weijters2013], devising partial solutions and practical best-practice recommendations [see @huang2015; and @weijters2013]. This accumulated wisdom has been largely left behind with the recent transition to massive-scale online testing, and the reliance on multiple questionnaires as a basis for the extraction of transdiagnostic psychiatric dispositions. Recently, concerns about the use of self-reports have resurfaced in the context of online testing [@chandler2020; @ophir2020], with evidence that inattentive responding leads to spurious negative correlations between the endorsement of rare items and task performance [@zorowitz2023]. Our findings expand on and amplify these concerns. Specifically, by introducing a direct measure of inattentive responding to an online task we were able to show that inattentive participants are not only more likely to endorse rare symptoms but are also more confident in their decisions relative to attentive participants. We further show that, even among attentive participants, biases common in responses to self-report inventories may generalize to confidence ratings -- a form of self-reports in themselves -- thus contributing to spurious correlations between psychiatric dimensions and metacognitive biases that are indistinguishable from ones driven by true metacognitive effects.
+
+We would like to emphasize that while our findings reveal how population variability in questionnaire-filling behaviour can yield spurious correlations between confidence and mental health, it is *not* our claim that true, meaningful correlations between the two do not exist. Specifically, the negative correlation between the AD (anxiety depression) factor and confidence aligns with the clinical presentation of anxiety and depression, and most likely reflects a true negative correlation over and beyond any contribution from acquiescence. With respect to the positive correlation of confidence with the CIT (compulsivity and intrusive thought) factor, more work is needed to determine the extent to which its reflects a true association, over and above the joint effect of acquiescence and inattentive responding. While CIT is repeatedly found to positively correlate with confidence in online samples [@benwell2022; @boldt2025; @fox2024; @hoven2023howDo; @katyal2025; @mohr2024; @rouault2018; @seow2025; @seowGillan2020], confidence is reduced in both clinical OCD samples [@cougle2007; @foa1997; @hermans2008; @karadag2005; @mcnally1993; @moritz2007; see ref. @dar2022; and @hoven2019; for a review], including studies that control for anxiety [@dar2000; repeated recall paradigm: @tolin2001] and depression [see analysis in @dar2022] and in samples of individuals with high OCD tendencies [@lazarov2012; @zhang2017]. This tension between the diverging metacognitive patterns of clinical OCD patients and individuals with high compulsivity was discussed in Hoven et al. [@hoven2023diff], who cautioned against generalizing metacognitive findings from the general population to clinical samples. We acknowledge that this discrepancy between patient and online studies is not fully resolved here, as the correlation between OCI-R scores and confidence did not become negative when controlling for acquiescence and inattentive responding. More work is needed to fully understand these diverging patterns.
+
+Importantly, this discrepancy may be explained in part by the CIT factor being more than a pure index of obsessive-compulsive tendencies, with significant contributions from the EAT questionnaire of eating disorders among others. And yet, this factor is also particularly susceptible to influences from surface-level questionnaire filling-behaviour, negatively weighting reversed items (thereby undoing the semantic coding reversal) and positively weighting highly skewed items from all questionnaires. Indeed, high CIT scores are associated with poor task performance when no staircasing is employed [@mohr2024; @benwell2022], as is expected from inattentive participants, but not necessarily from compulsive individuals. Furthermore, while CIT correlated with explicit confidence ratings (which are subject to acquiescence biases), it was not at all correlated with implicit measures of confidence such as information seeking @mohr2024 and post-decision wagering @sookud2026. Notably, the OCI-R questionnaire suffers from similar vulnerabilities, with no control for acquiescence (no reversed items), and multiple items that are rarely endorsed by attentive participants. In our experiment, OCI-R scores were significantly higher among inattentive participants, and correlated with acquiescence, measured as response to content-neutral items. Given these issues, we caution researchers to interpret links between compulsivity or OC tendencies and self-report or task performance data with care. Furthermore, while CIT correlated with explicit confidence ratings (which are subject to acquiescence biases), it is not normally found to correlate with implicit measures of confidence such as information seeking @mohr2024 and post-decision wagering @sookud2026. An important exception is a recent finding of a negative association between CIT and reminder-setting @boldt2025, which may reflect an implicit signature of CIT overconfidence, reduced engagement with the task, or a combination of both. Notably, the OCI-R questionnaire suffers from similar vulnerabilities, with no control for acquiescence (no reversed items), and multiple items that are rarely endorsed by attentive participants. In our experiment, OCI-R scores were significantly higher among inattentive participants, and correlated with acquiescence, measured as response to content-neutral items. Given these issues, we note that researchers should be mindful of over-interpreting links between compulsivity or OC tendencies and self-report or task performance.
+
+We suggest one more factor that may contribute to higher confidence among inattentive responders--gender. Roughly two thirds of inattentive responders in our study were self-declared males, compared to roughly half of all attentive responders `r apa_print(chisq_result, n = chi_sqaure__sample_size)$statistic[[1]]` Appendix, Figure A12). Given that male participants were, on average, more confident than female participants `r apa_print(t_test_gender_confidence)$statistic`; Cohen's d = `r round(gender_confidence_d$Cohens_d, 2)`, 95% CI [`r round(gender_confidence_d$CI_low, 2)`, `r round(gender_confidence_d$CI_high, 2)`]; Figure A13), it is possible that part of the association between inattentiveness and high confidence is related to these gender differences.
+
+Looking forward, we would like to make several practical recommendations. First, researchers using self-report measures to probe psychiatric dimensions should adopt sensitive measures of inattentive and careless responding. Of note, comprehension checks have been included in all studies re-analyzed here (Seow & Gillan, Rouault et al., and Hoven, Luigjes et al. [@seowGillan2020; @rouault2018; @hoven2023howDo]), and more recent studies incorporated infrequency items as well [@fox2024; @katyal2025]. As the field moves forward, however, researchers should create novel infrequency items rather than relying on existing ones, as online participants often discuss unusual items in online forums, which undermines their efficacy [@zorowitz2023]. When devising new infrequency items, it is advisable to use a similar language to the one used in other questionnaire items to avoid the item standing out, even to inattentive participants. Not only the content, but also the number of infrequency items can make a big difference. In our sample, 11.2% of all participants were identified as inattentive when using one infrequency item to identify careless responding, 17.5% when using two, 21.4% when using three and 24.2% when using four. A model that assumes that 28% of all participants are inattentive, and that the probability of an inattentive responder to fail an infrequency item is 39%, fitted our data well (see Appendix, Figure A15). This means that even with four infrequency items, 15.5% of all inattentive participants in our sample were not classified as such. Given that detection rates increase substantially with each additional infrequency item, studies relying on only one or two such items cannot rule out residual confounding effects of inattention (we elaborate on this further in our Reply to Gillan et al., 2025; section 2). In practice, then, it may be impossible to exclude all inattentive responders. Our recommendation is therefore to use infrequency items not only for participant exclusion, but also as a tool for researchers to quantify and report the potential effects of undetected inattentive responders on the observed patterns in the data.
+
+Second, we recommend including a content-neutral self-report measure to assess participants' tendency for acquiescence. Such a measure should comprise items that have minimal association with psychiatric tendencies. This is especially important when testing correlations with questionnaires that do not include reversed items, such as the OCI-R.
+
+Third, if using a staircasing procedure in studies of individual differences in metacognition, any effects of individual variability in task difficulty should be reported and discussed. As we show in the Appendix, staircasing renders performance similar across participants, but at the same time makes the task encountered by inattentive responders (or other groups that show poor performance) objectively easier. This can produce differences both in mean confidence and in more nuanced measures of metacognitive monitoring such as the difference in confidence between correct and incorrect decisions [e.g., metacognitive sensitivity; @maniscalco2012].
+
+A more general recommendation is to broaden the scope of metacognition research beyond confidence ratings. Metacognitive knowledge and monitoring can be probed in ways that do not involve verbal or numerical self-reports, such as post-decisional wagering ("am I confident enough to bet on this decision?") [@benshachar2013; @hembacher2017; @persaud2007] and information seeking ("do I require more evidence before committing a decision?") [@siegel2021; @schulz2023; @selmeczy2013]. Similarly, it has been suggested that decisions about absence, experimentally measured as decisions about missing targets and non-learned words, open a window into metacognitive knowledge about perception ("I would have seen the target if it was present") [@mazor2022efficient; @mazor2024role; @sarna2024] and memory ("I would have remembered this face if I had seen it before") [@ghetti2003; @mazor2025].
+
+Finally, whenever theory-based predictions about interactions between metacognition and test conditions are implied by theoretical models, prioritizing such interactions over analyses of overall confidence levels is recommended. For example, theoretical accounts of metacognitive deficiencies in OCD make specific predictions about a metacognitive failure to separate thoughts from actions ('thought-action-fusion') [@rachman1999], a difficulty to generate a feeling of knowing ('yedasentience') [@szechtman2004], or attenuated access to one's internal states, including memory [@liberman2023]. Predictions from such theoretical models are often more specific than global effects on confidence ratings, making them more robust to pattern mimicry from surface-level questionnaire-filling behaviours. Causal interventions can provide an additional support for a true link between metacognition and mental health. For example, Fox et al. @fox2023 found that a decrease in AD scores following treatment was associated with a corresponding increase in mean confidence ratings. It should be noted, however, that treatment might affect surface-level questionnaire filling behaviour such as acquiescence, which could simultaneously influence both reported confidence and dimensional mental health scores. To disentangle genuine treatment effects from changes in response styles, intervention studies should also implement sensitive measures of acquiescence and inattentive responding.
+
+As a final note, we strongly believe that the marriage between computational modelling of behaviour and mental health research is a promising one. Given the centrality of metacognition to many psychiatric conditions, recent developments in our understanding of the computational underpinning of subjective confidence may have important implications for how we identify and treat mental health problems. Furthermore, the move away from theory-driven psychiatric classifications to a data-driven, dimensional approach, may open up fresh theoretical perspectives and avenues for personalized treatment. At the same time, conflicts between traditional, disorder-based research and more novel, dimension-based research are all but inevitable. Such conflicts should be welcome; by forcing the field to address them, they have great potential to advance our science. In particular, they are invaluable for promoting the integration of paradigmatic innovation with clinical theorizing and experience, which will be key to fostering research with clinical translational value.
+
+# Methods
+
+## Analysis of existing datasets
+
+We report a reanalysis of data from four published articles that include both raw scores of psychiatric inventories and data from a cognitive task with confidence rating and that publicly shared their raw data (Rouault et al. [@rouault2018]; Seow & Gillan [@seowGillan2020];Hoven, Luigjes et al. [@hoven2023howDo]; Katyal et al. [@katyal2025]). More details on these datasets is available in the Supplementary Methods.
+
+## Assessing acquiescence
+
+### 1.1 Rating delta between standard and reversed items
+
+To measure acquiescence, we calculated for each participant their rating delta, as the mean rating for standard items minus mean rating for reversed items (after reversal) across all inventories. We used this rating delta as a proxy for acquiescence, as these studies did not include items with neutral content that could be used to independently assess acquiescence [@weijters2013]. This method allowed us to identify consistent agreement/disagreement patterns across diverse content. Positive acquiescence is expected to result in large positive rating deltas, as individuals would rate both standard and reversed items highly, creating a substantial difference after reverse-scoring the reversed items (e.g., endorsing both SDS .1 "I feel down-hearted and blue" and SDS .17 "I feel that I am useful and needed" would yield a large positive delta after reverse-scoring). Negative acquiescence is expected to produce large negative rating deltas, as individuals would rate both item types low, again creating a large difference in the opposite direction after reverse-scoring (e.g., low endorsement of both items, would yield a large negative delta).
+
+### 1.2 Reversed items inconsistency
+
+Another marker of acquiescence is an inconsistency between responses to reversed and regular items [@weijters2013]. For example, a participant who has a tendency to agree with self-report items independent of their content will show an inconsistency between reversed and standard items (agreement with an item and its opposite item, for instance both with 'I feel relaxed' and with 'I feel restless'). In our reanalysis section, we used the difference in item-confidence correlations between standard and reversed items inconsistency as a proxy for acquiescence.
+
+## Assessing Careless/Inattentive Responding Effects
+
+There are various documented methods to detect inattentive responders in self-report inventories. Some methods rely on a priori inclusion of bogus or infrequency items (e.g., "I am paid biweekly by leprechauns"), while others rely on response patterns, such as identical consecutive responses, or inconsistency between responses to reversed and standard items [see @meade2012 for a review].
+
+Here, we were particularly interested in a specific phenomenon discussed by [@king2018; @zorowitz2023; @chandler2020] whereby inattentive participants appear symptomatic when symptoms frequencies are rare (see Figure \@ref(fig:model)B 'rare symptom'). Specifically, Zorowitz et al. [@zorowitz2023] found that when a self-report inventory probes for symptom with low base-rate frequency in the population (for example, an inventory asking about hypomanic behaviors), inattentive responders would appear more symptomatic than attentive ones. The reason is that attentive responders will mostly give zero ratings to a rare symptom, while inattentive responders will use the entire rating scale equally [for an illustration see @zorowitz2023, figure 2]. Statistically, the rarer the symptom, the more skewed its distribution; hence, as the distribution becomes more skewed, the effect of inattentive responding becomes more pronounced [a phenomenon that has been documented by @king2018]. We harnessed this phenomenon as a proxy for evaluating the effects of inattentive responding.
+
+For every item in each questionnaire (148 items in total), we computed its skewness score and its Pearson correlation coefficient with the mean confidence ratings. We computed skewness using the "moments" package [@komsta2022].
+
+## Correlation tests
+
+We report Pearson correlations when the population distribution is assumed to be normal. When normality is not assumed, we report Spearman correlations.
+
+## Experiment
+
+The online experiment was approved by the Research Ethics Committee of Tel-Aviv University (Study ID No. 0009312-1). All participants provided informed consent before beginning the experiment. After giving consent, participants were instructed on the structure of the experiment, which included two parts: a perceptual task and a set of questions. They then received specific instructions regarding the perceptual decision task. In this task, participants viewed two black squares filled with black dots for 300 milliseconds and decided which square contained more black dots, the left or the right (with no time restriction). They were instructed to press 'S' for the left square and 'F' for the right. After making their perceptual decision, participants reported their confidence using a slider, ranging from 'Guessing' on the left to 'Certainly correct' on the right, with no numeric values displayed.
+
+The task started with 25 practice trials. In the first 6 trials, feedback on the perceptual decision was provided (after the confidence rating). The feedback stated either 'Your box selection was correct' or 'Your box selection was incorrect.' Feedback for incorrect decisions was shown for 3 seconds to emphasize the error, whereas feedback for correct selections was shown for 1.5 seconds. Participants then completed 19 additional trials without feedback. The purpose of these practice trials was to familiarize participants with the structure of the task. Upon completing the practice phase, participants received instructions for the main task, which included 300 trials divided into 4 blocks. After finishing the task, participants answered two comprehension questions (details in Supplementary Methods). Then, participants were redirected to Qualtrics to complete the self-report section, which comprised the OCI-R @foa2002 SDS @zung1965), and the Content-neutral items inventory. Each psychiatric questionnaire included two "infrequency" items to assess inattentive responding (details in Supplementary Methods).
+
+The complete set of survey items, including participants' instructions, is provided in the appendix section *Full Survey Questions*. The presentation order of the OCI-R, SDS, and mean neutral items inventory was randomized between participants. Within each questionnaire, item order was also randomized, with the constraint that infrequency items were never presented as the first item in either the OCI-R or SDS.
+
+#### Sampling design, modeling, and weighting assumptions
+
+Participants were recruited via Prolific online research platform. No modeling or weighting assumptions were applied.
+
+#### Respondent recruitment and question-related panel conditioning factors
+
+Participants were English-speaking located in the United Kingdom or United States. Participants who took part in previous pilot studies were excluded from participating again.
+
+#### Attrition rates and potential implications of attrition
+
+Five participants were excluded for an average accuracy below 60%, in accordance with our preregistered exclusion criterion.
+
+### Data availability
+
+Anonymized data from our online experiment are openly available on OSF at <https://osf.io/6npd9/>. This study also reanalyzed previously published datasets from Rouault et al. [@rouault2018], Seow and Gillan [@seowGillan2020], Hoven, Luigjes et al. [@hoven2023howDo] Gillan et al. [@gillanGoalDirected2016], and Katyal et al. [@katyal2025], which are available from their original publications and repositories. The datasets as used in the present analyses are available on OSF at <https://osf.io/6npd9/>.
+
+### Code availability
+
+Our analysis code for both the re-analyses of existing datasets and analysis for our experiment are available on GitHub at <https://github.com/self-model/BIRDAM>.
+
+\newpage
+
+# References
+
+::: {#refs custom-style="Bibliography"}
+:::
+
+# Acknowledgements
+
+We wholeheartedly wish to thank Tricia Seow, Marion Rouault, Sucharit Katyal, Ruth Van Holst, Steve Fleming, and Claire Gillan for their collaborative scientific spirit, critical and insightful comments, and constructive feedback. Without their generous and open sharing of data and code, this work would not have been possible. We also wish to thank Nitzan Shahar Ido Ben Artzi, Chris Benwell, and Roni Maimon-Mor for their valuable feedback.
+
+```{r save-environment-for-appendix, include=FALSE}
+# Re-knit prePrint.Rmd whenever analysis changes, then re-knit appendix_standalone.Rmd
+save(
+  # Existing-dataset tables
+  R2018_items_table, SG2020_items_table,
+  hoven_items_table, hoven_items_table_no_anx,
+  # Reversal LMMs
+  conf_cor_reversed_R2018_m, conf_cor_reversed_SG2020_m, conf_cor_reversed_hoven_m,
+  # Skewness-confidence LMMs
+  rouault_skew_conf_lmm, sg_skew_conf_lmm,
+  hoven_skew_conf_lmm, hoven_skew_conf_lmm_intercept_only,
+  # Skewness-CIT weight correlation (Hoven)
+  H2023_item_weight_skewness_cor_CIT,
+  # Plot annotation labels
+  Rouault_skewness_conf_cor_label, SG_skewness_conf_cor_label, hoven_skewness_conf_cor_label,
+  # Shared plot components
+  complete_legend_skew_conf_fig, SG_CIT_mean_fig, SG_AD_mean_fig,
+  # Experiment data
+  raw_df, mean_conf_df, inf_df, item_failures,
+  total_n_after_exclusion, excluded_for_accuracy,
+  # Experiment stat objects
+  conf_inatt_m, conf_acq_m, chisq_result, chi_sqaure__sample_size,
+  difficulty_t_test, difficulty_confidence_cor,
+  # Bootstrap/permutation results
+  oci_conf_cor_drop, oci_confidence_cor_coef,
+  oci_confidence_filter_inattentive_acq_cor_coef,
+  sds_n_cor_drop_smaller, sds_permutation_p_value,
+  # Shared aesthetics
+  questionnaire_shape_map, custom_colors, scale_color_manual_values,
+  file = "preprint_environment.RData"
+)
+```
