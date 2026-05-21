@@ -1,7 +1,9 @@
 ![mit](https://img.shields.io/badge/License-MIT-blue.svg)
 
-# Biased and Inattentive Responding Drive Apparent Metacognitive Biases in Mental Health 
+# Biased and Inattentive Responding Contribute to Apparent Metacognitive Biases in Mental Health 
 ## Noam Sarna, Reuvan Dar, and Matan Mazor 
+
+Sarna, N., Dar, R., & Mazor, M. (2026). Biased and inattentive responding contribute to apparent metacognitive biases in mental health. Proceedings of the National Academy of Sciences, 123(19), e2520832123.
 
 ![mit](https://github.com/Noamsarna/BIRDAM/blob/main/figures/model.png)
 
